@@ -1,0 +1,11 @@
+{
+  "bottles": [
+    { "file": "openclipart-vectors-wine-150955_1920.png", "name": "Chateau de France", "type": "red", "slug": "chateau-de-france" },
+    { "file": "openclipart-vectors-champagne-146885_1920.png", "name": "Champagne Brut", "type": "white", "slug": "champagne-brut" },
+    { "file": "mkt102-wine-1010656_1920.png", "name": "Rioja Antano", "type": "red", "slug": "rioja-antano" },
+    { "file": "mkt102-wine-1010657_1920.png", "name": "Rioja Reserve", "type": "red", "slug": "rioja-reserve" },
+    { "file": "clker-free-vector-images-champagne-35313_1920.png", "name": "Cuvee Millesimee", "type": "white", "slug": "cuvee-millesimee" },
+    { "file": "henry08-wine-bottle-3972952_1920.jpg", "name": "Le Filou Blanc", "type": "white", "slug": "le-filou-blanc" },
+    { "file": "stefangrage-wine-4094234_1920.jpg", "name": "Vin Rouge", "type": "red", "slug": "vin-rouge" }
+  ]
+}
