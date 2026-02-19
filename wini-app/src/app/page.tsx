@@ -13,12 +13,16 @@ import HamburgerMenu from "@/components/HamburgerMenu";
 import WineDetailOverlay from "@/components/WineDetailOverlay";
 import DishShelf from "@/components/DishShelf";
 import AuthModal from "@/components/AuthModal";
+import { convertImageToJpeg } from "@/utils/imageUtils";
 import { AnalyzeResponse, Dish, Session, Wine } from "@/lib/types";
 import { saveSession, deleteSession, generateId } from "@/lib/storage";
 
 type AppState = "home" | "scanning" | "results";
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
+const normalizeName = (name: string) =>
+  name.toLowerCase().replace(/[-–—]/g, " ").replace(/\s+/g, " ").trim();
 
 export default function Home() {
   const [state, setState] = useState<AppState>("home");
@@ -105,25 +109,25 @@ export default function Home() {
     if (layoutTimerRef.current) clearTimeout(layoutTimerRef.current);
 
     // Preserve images for back navigation + regeneration
-    setLastImages(images);
-    const newPreviews = await Promise.all(
-      images.map(
-        (file) =>
-          new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-          })
-      )
-    );
-    setLastPreviews(newPreviews);
-    setLastBase64Images(newPreviews);
+    // In results mode (camera hidden), no new images — reuse cached menu photos
+    const hasNewImages = images.length > 0;
+    if (hasNewImages) {
+      setLastImages(images);
+    }
+    const newPreviews = hasNewImages
+      ? await Promise.all(images.map((file) => convertImageToJpeg(file, 2048)))
+      : [];
+    if (hasNewImages) {
+      setLastPreviews(newPreviews);
+      setLastBase64Images(newPreviews);
+    }
+    const imagesToSend = newPreviews.length > 0 ? newPreviews : lastBase64Images;
 
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: newPreviews, text }),
+        body: JSON.stringify({ images: imagesToSend, text }),
       });
 
       if (!res.ok) throw new Error("Analysis failed");
@@ -255,9 +259,15 @@ export default function Home() {
       // Remap API dish IDs → our existing dish IDs (API generates its own d1, d2...)
       const dishesToMatch = matrixChanged ? activeDishes : dishesNeedingPairings;
       const apiDishIdMap = new Map<string, string>();
-      for (const apiDish of data.dishes ?? []) {
-        const match = dishesToMatch.find((d) => d.name.toLowerCase() === apiDish.name.toLowerCase());
-        if (match) apiDishIdMap.set(apiDish.id, match.id);
+      for (let i = 0; i < (data.dishes ?? []).length; i++) {
+        const apiDish = data.dishes[i];
+        const match = dishesToMatch.find((d) => normalizeName(d.name) === normalizeName(apiDish.name));
+        if (match) {
+          apiDishIdMap.set(apiDish.id, match.id);
+        } else if (i < dishesToMatch.length) {
+          // Positional fallback: API returns dishes in same order we sent
+          apiDishIdMap.set(apiDish.id, dishesToMatch[i].id);
+        }
       }
 
       isLocalPairingUpdate.current = true;
@@ -287,12 +297,15 @@ export default function Home() {
           }
         }
 
-        // Remap pairings to use our dish + wine IDs
-        const remappedPairings = data.pairings.map((p) => ({
-          ...p,
-          dish_id: apiDishIdMap.get(p.dish_id) ?? p.dish_id,
-          wine_id: apiWineIdMap.get(p.wine_id) ?? p.wine_id,
-        }));
+        // Remap pairings to use our dish + wine IDs, filter out orphans
+        const validDishIds = new Set(activeDishes.map((d) => d.id));
+        const remappedPairings = data.pairings
+          .map((p) => ({
+            ...p,
+            dish_id: apiDishIdMap.get(p.dish_id) ?? p.dish_id,
+            wine_id: apiWineIdMap.get(p.wine_id) ?? p.wine_id,
+          }))
+          .filter((p) => validDishIds.has(p.dish_id));
 
         // For full regen: collect all wines (reused existing + genuinely new)
         // For partial: merge new wines with existing
@@ -427,7 +440,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
               transition={{ delay: 0.2, duration: 0.6, ease }}
-              className="w-full"
+              className="w-full flex-1"
               style={{ marginTop: "clamp(0.75rem, 2vh, 1.5rem)" }}
             >
               <InlinePairingResults
@@ -445,9 +458,9 @@ export default function Home() {
 
         {/* Search bar — always in DOM, faded during scanning, scales down in results */}
         <motion.div
-          className="w-full max-w-2xl px-4"
+          className={`w-full max-w-2xl px-4 ${showResultsLayout ? "mt-auto" : ""}`}
           animate={{
-            marginTop: showResultsLayout ? "clamp(1.5rem, 4vh, 3.5rem)" : "1.5rem",
+            marginTop: showResultsLayout ? undefined : "1.5rem",
             opacity: state === "scanning" ? 0 : 1,
             scale: showResultsLayout ? 0.9 : 1,
           }}
@@ -475,6 +488,7 @@ export default function Home() {
             needsRegeneration={needsRegeneration && lastBase64Images.length > 0}
             isRegenerating={isRegenerating}
             onRegenerate={handleRegenerate}
+            hideCamera={showResultsLayout}
           />
         </motion.div>
 

@@ -283,9 +283,9 @@ export default function InlinePairingResults({
                   }}
                 >
                   <div className="flex items-center" style={{ gap: "clamp(0.35rem, 0.6vw, 0.6rem)" }}>
-                    <span style={{ fontSize: "clamp(0.7rem, 0.9vw, 0.85rem)" }}>{categoryIcons[dish.category] || "\u{1F37D}"}</span>
+                    <span className="shrink-0" style={{ fontSize: "clamp(0.7rem, 0.9vw, 0.85rem)" }}>{categoryIcons[dish.category] || "\u{1F37D}"}</span>
                     <span
-                      className="leading-tight truncate"
+                      className="leading-tight line-clamp-2 min-w-0"
                       style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 500, color: "var(--cream-lightest)", fontSize: "clamp(0.8rem, 1.3vw, 1.05rem)" }}
                     >
                       {dish.name}
@@ -447,7 +447,7 @@ export default function InlinePairingResults({
                       style={{ background: typeColors[wine.type] || "#C9A84C", width: "clamp(0.4rem, 0.6vw, 0.55rem)", height: "clamp(0.4rem, 0.6vw, 0.55rem)" }}
                     />
                     <span
-                      className="leading-tight truncate min-w-0"
+                      className="leading-tight line-clamp-2 min-w-0"
                       style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 500, color: textColor, fontSize: `calc(clamp(0.8rem, 1.3vw, 1.05rem) * ${wineScale})`, transition: "color 0.25s ease" }}
                     >
                       {wine.name}

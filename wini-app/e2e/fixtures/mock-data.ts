@@ -56,6 +56,46 @@ export const REGEN_RESPONSE: AnalyzeResponse = {
   language: "en",
 };
 
+// Regen response for Caprese Salad (dismiss→readd→regen scenario)
+export const REGEN_CAPRESE_RESPONSE: AnalyzeResponse = {
+  dishes: [
+    { id: "d1", name: "Caprese Salad", description: "Burrata, heirloom tomato, basil", category: "salad" },
+  ],
+  wines: [
+    { id: "w1", name: "Etna Rosato", type: "rosé", grape: "Nerello Mascalese", region: "Sicily", vintage: "2023" },
+  ],
+  pairings: [
+    { dish_id: "d1", wine_id: "w1", score: 0.92, reason: "Rosato's freshness pairs with tomato and burrata.", detailed_reason: "Detailed." },
+  ],
+  language: "en",
+};
+
+// Full regen response — all 6 dishes when matrix threshold changes
+export const REGEN_FULL_RESPONSE: AnalyzeResponse = {
+  dishes: [
+    { id: "d1", name: "Arancini", description: "Saffron risotto balls, tomato sugo", category: "appetizer" },
+    { id: "d2", name: "Grilled Branzino", description: "Lemon, capers, herbs", category: "fish" },
+    { id: "d3", name: "Osso Buco", description: "Braised veal shank, gremolata", category: "meat" },
+    { id: "d4", name: "Truffle Pasta", description: "Fresh tagliatelle, black truffle", category: "pasta" },
+    { id: "d5", name: "Tiramisu", description: "Espresso, mascarpone, cocoa", category: "dessert" },
+    { id: "d6", name: "Panna Cotta", description: "Vanilla, berry compote", category: "dessert" },
+  ],
+  wines: [
+    { id: "w1", name: "Vermentino di Sardegna", type: "white", grape: "Vermentino", region: "Sardinia", vintage: "2022" },
+    { id: "w2", name: "Barolo Riserva", type: "red", grape: "Nebbiolo", region: "Piedmont", vintage: "2017" },
+    { id: "w3", name: "Moscato d'Asti", type: "white", grape: "Moscato", region: "Piedmont", vintage: "2023" },
+  ],
+  pairings: [
+    { dish_id: "d1", wine_id: "w1", score: 0.94, reason: "Vermentino's citrus freshness cuts through fried risotto.", detailed_reason: "Detailed." },
+    { dish_id: "d2", wine_id: "w1", score: 0.96, reason: "Classic Mediterranean white with Mediterranean fish.", detailed_reason: "Detailed." },
+    { dish_id: "d3", wine_id: "w2", score: 0.97, reason: "Barolo's power matches braised veal perfectly.", detailed_reason: "Detailed." },
+    { dish_id: "d4", wine_id: "w2", score: 0.95, reason: "Nebbiolo's earthy character mirrors truffle.", detailed_reason: "Detailed." },
+    { dish_id: "d5", wine_id: "w3", score: 0.90, reason: "Moscato's sweetness pairs with tiramisu.", detailed_reason: "Detailed." },
+    { dish_id: "d6", wine_id: "w3", score: 0.88, reason: "Moscato complements vanilla panna cotta.", detailed_reason: "Detailed." },
+  ],
+  language: "en",
+};
+
 // Single-dish response for focused tests
 export const SINGLE_DISH_RESPONSE: AnalyzeResponse = {
   dishes: [

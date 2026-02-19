@@ -18,11 +18,11 @@ Respond ONLY in valid JSON with this structure:
 CRITICAL — User intent detection:
 The user may provide text alongside menu photos. Detect their intent:
 1. SPECIFIC DISH — User names a specific dish (e.g., "I will eat Tartar", "the lamb for me"):
-   - Include ONLY that dish. Do NOT add other dishes unless the user asks.
-   - Apply the pairing limit for 1 dish (up to 5 wines).
+   - Include ONLY that dish in "dishes" (with pairings). Apply the pairing limit for 1 dish.
+   - ALL other wine-relevant dishes from the menu go in "otherDishes" (no pairings).
 2. MULTIPLE DISHES — User names several dishes (e.g., "we're having the salmon and the steak"):
-   - Include exactly those dishes (cap at 5).
-   - Apply the pairing limit based on dish count.
+   - Include exactly those dishes in "dishes" (cap at 5, with pairings). Apply the pairing limit based on dish count.
+   - ALL other wine-relevant dishes from the menu go in "otherDishes" (no pairings).
 3. GENERAL — No specific dish mentioned, or just "what's good?":
    - Curate the top 5 most wine-interesting dishes from the menu.
    - Apply the pairing limit based on dish count.
@@ -33,7 +33,9 @@ The user may provide text alongside menu photos. Detect their intent:
 Dish curation rules:
 - You are a sommelier, NOT a menu transcriber. Do NOT list every dish.
 - Pick the most WINE-INTERESTING dishes — the ones where wine pairing truly matters.
-- Top 5 go in "dishes" (with pairings). ALL remaining wine-relevant dishes go in "otherDishes" (same shape, no pairings). "otherDishes" IDs continue after dishes (e.g., d6, d7...).
+- For GENERAL intent: Top 5 go in "dishes" (with pairings). ALL remaining wine-relevant dishes go in "otherDishes" (no pairings).
+- For SPECIFIC/MULTIPLE intent: Named dishes go in "dishes" (with pairings). ALL other wine-relevant menu dishes go in "otherDishes" (no pairings).
+- "otherDishes" IDs continue after dishes (e.g., d6, d7...).
 - SKIP: bread courses, amuse-bouches, palate cleansers, petit fours, simple garnishes, tea/coffee pairings.
 - For tasting menus: select the headline courses (fish, meat, rich vegetarian) that showcase wine pairing.
 - For a la carte: pick the standout mains and starters.
@@ -99,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     for (const img of images) {
       // img is base64 data URL: "data:image/jpeg;base64,..."
-      const match = img.match(/^data:(image\/\w+);base64,(.+)$/);
+      const match = img.match(/^data:(image\/(?:jpeg|png|gif|webp));base64,(.+)$/);
       if (match) {
         content.push({
           type: "image",
@@ -109,7 +111,13 @@ export async function POST(request: NextRequest) {
             data: match[2],
           },
         });
+      } else {
+        console.warn("[analyze] Skipped image with unsupported format:", img.slice(0, 40));
       }
+    }
+
+    if (images.length > 0 && content.length === 0) {
+      console.warn("[analyze] All images filtered out — proceeding as text-only");
     }
 
     // When dishNames is provided (regeneration), prepend specific pairing instruction

@@ -16,6 +16,7 @@ type SearchBarProps = {
   needsRegeneration?: boolean;
   isRegenerating?: boolean;
   onRegenerate?: () => void;
+  hideCamera?: boolean;
 };
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -150,7 +151,7 @@ function LightboxOverlay({ previews, expandedPreview, onClose, onNavigate }: Lig
   );
 }
 
-export default function SearchBar({ onSubmit, position = "center", placeholder, language, onTranslate, isTranslating, initialImages, initialPreviews, onClean, needsRegeneration, isRegenerating, onRegenerate }: SearchBarProps) {
+export default function SearchBar({ onSubmit, position = "center", placeholder, language, onTranslate, isTranslating, initialImages, initialPreviews, onClean, needsRegeneration, isRegenerating, onRegenerate, hideCamera }: SearchBarProps) {
   const [text, setText] = useState("");
   const [images, setImages] = useState<File[]>(() => initialImages ?? []);
   const [previews, setPreviews] = useState<string[]>(() => initialPreviews ?? []);
@@ -180,6 +181,8 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
       };
       reader.readAsDataURL(file);
     });
+    // Reset input value so onChange fires even when re-selecting the same file
+    e.target.value = "";
   };
 
   const removeImage = (index: number) => {
@@ -207,6 +210,7 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
   return (
     <>
     {/* Hidden file input — outside motion containers to avoid layout animation triggers */}
+    {!hideCamera && (
     <input
       ref={fileRef}
       type="file"
@@ -215,6 +219,7 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
       onChange={handleFiles}
       className="hidden"
     />
+    )}
     <motion.div
       layout
       animate={{
@@ -235,7 +240,7 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
     >
       <div className={`relative ${isBottom ? "max-w-2xl mx-auto" : ""}`}>
         {/* Image previews — stacked above the pill */}
-        {previews.length > 0 && (
+        {!hideCamera && previews.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -327,15 +332,16 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
                   </g>
                 </motion.svg>
               </motion.button>
-              {/* Hover tooltip */}
+              {/* Permanent label below button */}
               <span
-                className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2.5 py-1 rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                className="absolute left-1/2 -translate-x-1/2 top-full mt-1 whitespace-nowrap pointer-events-none"
                 style={{
-                  fontFamily: "var(--font-jost-family)",
-                  background: "rgba(13, 13, 13, 0.9)",
-                  color: "#FAF6F0",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  backdropFilter: "blur(8px)",
+                  fontFamily: "var(--font-cormorant-family)",
+                  fontWeight: 600,
+                  fontSize: "clamp(0.6rem, 1.5vw, 0.75rem)",
+                  color: "rgba(250, 246, 240, 0.55)",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase" as const,
                 }}
               >
                 Regenerate
@@ -408,7 +414,8 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
               boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
             }}
           >
-          {/* Camera button — opens file picker */}
+          {/* Camera button — opens file picker (hidden in results mode) */}
+          {!hideCamera && (
           <div className="shrink-0 relative flex items-center" style={{ gap: "0.35rem" }}>
             <button
               type="button"
@@ -467,6 +474,7 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
               </motion.button>
             )}
           </div>
+          )}
 
           {/* Text input with split-color placeholder */}
           <div className="relative flex-1">
@@ -525,6 +533,7 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
     </motion.div>
 
     {/* Lightbox overlay for expanded image preview */}
+    {!hideCamera && (
     <AnimatePresence>
       {expandedPreview !== null && previews[expandedPreview] && (
         <LightboxOverlay
@@ -535,6 +544,7 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
         />
       )}
     </AnimatePresence>
+    )}
     </>
   );
 }
