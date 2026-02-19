@@ -289,8 +289,8 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
                 disabled={isRegenerating}
                 className="shrink-0 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-50"
                 style={{
-                  width: "clamp(2.75rem, 8vw, 4rem)",
-                  height: "clamp(2.75rem, 8vw, 4rem)",
+                  width: "clamp(2.5rem, 8vw, 4rem)",
+                  height: "clamp(2.5rem, 8vw, 4rem)",
                   background: "#1A1A1A",
                   boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
                   cursor: isRegenerating ? "wait" : "pointer",
@@ -360,8 +360,8 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
                 disabled={isTranslating}
                 className="shrink-0 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-50"
                 style={{
-                  width: "clamp(2.75rem, 8vw, 4rem)",
-                  height: "clamp(2.75rem, 8vw, 4rem)",
+                  width: "clamp(2.5rem, 8vw, 4rem)",
+                  height: "clamp(2.5rem, 8vw, 4rem)",
                   background: "#1A1A1A",
                   boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
                 }}

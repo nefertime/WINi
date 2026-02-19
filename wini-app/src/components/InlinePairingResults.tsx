@@ -301,10 +301,10 @@ export default function InlinePairingResults({
                       onClick={(e) => { e.stopPropagation(); onDismissDish(dish.id); }}
                       className="absolute flex items-center justify-center transition-all duration-150 hover:scale-110"
                       style={{
-                        top: "0.3rem",
-                        right: "0.3rem",
-                        width: "1.3rem",
-                        height: "1.3rem",
+                        top: "-0.35rem",
+                        right: "-0.35rem",
+                        width: "2.75rem",
+                        height: "2.75rem",
                         borderRadius: "50%",
                         background: "rgba(250, 246, 240, 0.06)",
                         border: "none",
@@ -472,7 +472,8 @@ export default function InlinePairingResults({
                     <div className="shrink-0 relative flex flex-col items-center" style={{ width: "clamp(14px, 1.3vw, 19px)", marginTop: "2px" }}>
                       <button
                         onClick={(e) => handleToggleFavorite(wine, e)}
-                        className="cursor-pointer transition-transform duration-200 hover:scale-110 group/heart"
+                        className="cursor-pointer transition-transform duration-200 hover:scale-110 group/heart flex items-center justify-center"
+                        style={{ minWidth: "2.75rem", minHeight: "2.75rem" }}
                         aria-label={favoriteIds.has(wine.id) ? "Remove from favorites" : "Add to favorites"}
                       >
                         <svg className="transition-colors duration-150" style={{ width: "clamp(14px, 1.3vw, 19px)", height: "clamp(14px, 1.3vw, 19px)" }} viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
@@ -489,7 +490,7 @@ export default function InlinePairingResults({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5 }}
                             transition={{ duration: 0.15, ease }}
-                            style={{ position: "absolute", top: "100%", marginTop: "1px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                            style={{ position: "absolute", top: "85%", marginTop: "1px", display: "flex", alignItems: "center", justifyContent: "center" }}
                             title="Top pick"
                           >
                             <svg style={{ width: "clamp(14px, 1.3vw, 19px)", height: "clamp(14px, 1.3vw, 19px)" }} viewBox="0 0 24 24" fill="#C9A84C" stroke="rgba(26, 10, 14, 0.35)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">

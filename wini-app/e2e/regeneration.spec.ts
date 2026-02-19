@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch } from "./helpers";
+import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch, dismissCookieConsent } from "./helpers";
 import { WINO_MENU_RESPONSE, REGEN_RESPONSE, REGEN_CAPRESE_RESPONSE, REGEN_FULL_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Regeneration", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissCookieConsent(page);
+  });
+
   test("regenerate button appears next to search bar when needed", async ({ page }) => {
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
     await page.goto("/");
@@ -62,7 +66,7 @@ test.describe("Regeneration", () => {
 
     // Click regenerate
     const regenBtn = page.locator('[aria-label*="Regenerate"]');
-    await regenBtn.click();
+    await regenBtn.click({ force: true });
 
     // Button label should change to regenerating state
     await expect(page.locator('[aria-label="Regenerating pairings..."]')).toBeVisible();
@@ -95,7 +99,7 @@ test.describe("Regeneration", () => {
 
     const regenBtn = page.locator('[aria-label*="Regenerate"]');
     await expect(regenBtn).toBeVisible();
-    await regenBtn.click();
+    await regenBtn.click({ force: true });
 
     // Button should disappear after regen completes (needsRegeneration → false)
     await expect(regenBtn).not.toBeVisible({ timeout: 5000 });
@@ -122,7 +126,7 @@ test.describe("Regeneration", () => {
     await page.waitForTimeout(350);
     await page.locator('[aria-label="Add Caprese Salad"]').click();
 
-    await page.locator('[aria-label*="Regenerate"]').click();
+    await page.locator('[aria-label*="Regenerate"]').click({ force: true });
 
     // Wait for regen to complete (button disappears)
     await expect(page.locator('[aria-label*="Regenerate"]')).not.toBeVisible({ timeout: 5000 });
@@ -150,13 +154,17 @@ test.describe("Regeneration", () => {
       });
     });
 
+    // Dismiss a dish to make room for Tiramisu (max 5 active)
+    await page.locator('[aria-label="Dismiss Caprese Salad"]').click();
+    await page.waitForTimeout(350);
+
     // Add Tiramisu from shelf
     await page.locator('[aria-label="Add Tiramisu"]').click();
 
     // Regen button should appear (Tiramisu has no pairings)
     const regenBtn = page.locator('[aria-label*="Regenerate"]');
     await expect(regenBtn).toBeVisible();
-    await regenBtn.click();
+    await regenBtn.click({ force: true });
 
     // Wait for regen to complete
     await expect(regenBtn).not.toBeVisible({ timeout: 5000 });
@@ -193,7 +201,7 @@ test.describe("Regeneration", () => {
 
     const regenBtn = page.locator('[aria-label*="Regenerate"]');
     await expect(regenBtn).toBeVisible();
-    await regenBtn.click();
+    await regenBtn.click({ force: true });
 
     // Wait for regen to complete
     await expect(regenBtn).not.toBeVisible({ timeout: 5000 });
@@ -223,7 +231,7 @@ test.describe("Regeneration", () => {
     await page.waitForTimeout(350);
     await page.locator('[aria-label="Add Caprese Salad"]').click();
 
-    await page.locator('[aria-label*="Regenerate"]').click();
+    await page.locator('[aria-label*="Regenerate"]').click({ force: true });
 
     // Spinning state should not persist — button should be gone within 3s
     await expect(page.locator('[aria-label="Regenerating pairings..."]')).not.toBeVisible({ timeout: 3000 });

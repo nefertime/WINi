@@ -59,6 +59,16 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
   const [accountPanelOpen, setAccountPanelOpen] = useState(false);
   const savedSectionRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
+  const [isMobileMenu, setIsMobileMenu] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobileMenu(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // Auto-expand Saved Wines when menu opens — sync state with prop change
   useEffect(() => {
@@ -486,12 +496,23 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
             {selectedFav && activeSection === "saved" && (
               <motion.div
                 key="fav-popup"
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -6 }}
+                initial={{ opacity: 0, x: isMobileMenu ? 0 : -6, y: isMobileMenu ? -6 : 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: isMobileMenu ? 0 : -6, y: isMobileMenu ? -6 : 0 }}
                 transition={{ duration: 0.2, ease }}
                 className="fixed z-50 rounded-xl px-5 py-4"
-                style={{
+                style={isMobileMenu ? {
+                  width: "calc(100vw - 2rem)",
+                  left: "1rem",
+                  top: "calc(1rem + clamp(2.75rem, 8vw, 4rem) + 0.5rem + 18rem)",
+                  maxHeight: "40vh",
+                  overflowY: "auto" as const,
+                  background: "rgba(13, 13, 13, 0.92)",
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
+                } : {
                   width: 220,
                   left: "19.5rem",
                   top: Math.max(60, selectedFav.top - 8),

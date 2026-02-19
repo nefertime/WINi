@@ -151,7 +151,7 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
                 onMouseLeave={() => setShowInfo(false)}
                 style={{
                   top: "20%",
-                  right: "-12rem",
+                  right: "clamp(-8rem, -12vw, -12rem)",
                   width: "13rem",
                   background: "rgba(13, 13, 13, 0.92)",
                   backdropFilter: "blur(24px)",

@@ -4,6 +4,31 @@ import path from "path";
 
 const TEST_MENU_DIR = path.resolve(__dirname, "../../test-data/menus");
 
+// Clean app state — clear localStorage keys + set cookie consent to suppress banner
+export async function cleanState(page: Page) {
+  await page.evaluate(() => {
+    localStorage.removeItem("wini_sessions");
+    localStorage.removeItem("wini_favorites");
+  });
+  // Set cookie consent so the banner doesn't appear and block interactions
+  await page.context().addCookies([{
+    name: "wini_cookie_consent",
+    value: encodeURIComponent(JSON.stringify({ essential: true, analytics: false, marketing: false, timestamp: Date.now() })),
+    domain: "localhost",
+    path: "/",
+  }]);
+}
+
+// Dismiss cookie consent banner by setting the consent cookie
+export async function dismissCookieConsent(page: Page) {
+  await page.context().addCookies([{
+    name: "wini_cookie_consent",
+    value: encodeURIComponent(JSON.stringify({ essential: true, analytics: false, marketing: false, timestamp: Date.now() })),
+    domain: "localhost",
+    path: "/",
+  }]);
+}
+
 // Mock the /api/analyze endpoint with deterministic data
 export async function mockAnalyzeAPI(page: Page, response: AnalyzeResponse) {
   await page.route("**/api/analyze", async (route) => {

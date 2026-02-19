@@ -108,6 +108,7 @@ export default function Home() {
     setLayoutMode("home");
     if (layoutTimerRef.current) clearTimeout(layoutTimerRef.current);
 
+    try {
     // Preserve images for back navigation + regeneration
     // In results mode (camera hidden), no new images — reuse cached menu photos
     const hasNewImages = images.length > 0;
@@ -122,8 +123,6 @@ export default function Home() {
       setLastBase64Images(newPreviews);
     }
     const imagesToSend = newPreviews.length > 0 ? newPreviews : lastBase64Images;
-
-    try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

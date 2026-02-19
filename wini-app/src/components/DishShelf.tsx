@@ -61,7 +61,7 @@ export default function DishShelf({ dishes, onAdd, maxActive = 5, activeCount = 
               background: "rgba(250, 246, 240, 0.12)",
               border: "1px solid rgba(250, 246, 240, 0.18)",
               backdropFilter: "blur(8px)",
-              padding: "0.2rem 0.55rem",
+              padding: "0.5rem 0.75rem",
               gap: "0.3rem",
               cursor: atCap ? "not-allowed" : "pointer",
             }}
