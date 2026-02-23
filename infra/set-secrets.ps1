@@ -1,8 +1,9 @@
-# Wait a moment for role assignment to propagate
+# Stores secrets in Azure Key Vault — run after grant-keyvault.ps1
+# Reads password from prompt, never hardcoded
+$PG_PASSWORD = Read-Host "Enter PostgreSQL password" -AsSecureString
+$PG_PASSWORD_PLAIN = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($PG_PASSWORD))
+
 Start-Sleep -Seconds 15
 
 az keyvault secret set --vault-name wini-dev-kv --name "DATABASE-URL" `
-  --value "postgresql://winiadmin:WdPtVKU4pH6smV@wini-dev-pg.postgres.database.azure.com/postgres?sslmode=require"
-
-az keyvault secret set --vault-name wini-dev-kv --name "NEXTAUTH-SECRET" `
-  --value "$(az account get-access-token --query accessToken -o tsv | sha256sum | head -c 32)"
+  --value "postgresql://winiadmin:$PG_PASSWORD_PLAIN@wini-dev-pg.postgres.database.azure.com/postgres?sslmode=require"
