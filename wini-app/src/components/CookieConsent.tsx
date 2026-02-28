@@ -51,10 +51,10 @@ export default function CookieConsent() {
           exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 60 }}
           transition={{ duration: 0.5, ease }}
           className="fixed inset-x-0 z-[60] flex justify-center px-4"
-          style={{ top: "calc(50% + clamp(4rem, 10vw, 7rem) + 3cm)" }}
+          style={{ bottom: "clamp(14rem, 35vh, 22rem)" }}
         >
           <div
-            className="w-full max-w-xl rounded-2xl px-8 py-6"
+            className="w-full max-w-xl rounded-2xl px-10 py-6"
             style={{
               background: "rgba(13, 13, 13, 0.92)",
               backdropFilter: "blur(24px)",
