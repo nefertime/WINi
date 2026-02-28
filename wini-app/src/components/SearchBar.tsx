@@ -157,11 +157,12 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
   const [previews, setPreviews] = useState<string[]>(() => initialPreviews ?? []);
   const fileRef = useRef<HTMLInputElement>(null);
   const [expandedPreview, setExpandedPreview] = useState<number | null>(null);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
-    setIsDesktop(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Logo from "./Logo";
 
@@ -13,11 +13,7 @@ function getMealTime(): string {
 }
 
 export default function ScanningAnimation() {
-  const [meal, setMeal] = useState("evening");
-
-  useEffect(() => {
-    setMeal(getMealTime());
-  }, []);
+  const [meal] = useState(() => getMealTime());
 
   return (
     <motion.div
