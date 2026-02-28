@@ -1,15 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch } from "./helpers";
+import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch, cleanState } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Favorites (Task 5)", () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage favorites
     await page.goto("/");
-    await page.evaluate(() => {
-      localStorage.removeItem("wini-favorites");
-      localStorage.removeItem("wini-sessions");
-    });
+    await cleanState(page);
 
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
     await mockWineInfoAPI(page);
@@ -34,8 +30,7 @@ test.describe("Favorites (Task 5)", () => {
     await heartBtn.click();
 
     // Open hamburger menu
-    const menuBtn = page.locator("button").first();
-    await menuBtn.click();
+    await page.getByLabel("Open menu").click();
 
     // Saved Wines section should auto-expand and show the wine
     await expect(page.locator("text=Saved Wines")).toBeVisible();
@@ -52,7 +47,7 @@ test.describe("Favorites (Task 5)", () => {
     await page.waitForTimeout(200);
 
     // Open menu
-    await page.locator("button").first().click();
+    await page.getByLabel("Open menu").click();
     await page.waitForTimeout(500); // Wait for menu animation to complete
 
     // Click the saved wine row directly (the .group div with onClick handler)
@@ -75,7 +70,7 @@ test.describe("Favorites (Task 5)", () => {
     await page.locator('[aria-label="Add to favorites"]').first().click();
 
     // Open menu
-    await page.locator("button").first().click();
+    await page.getByLabel("Open menu").click();
     await page.waitForTimeout(300);
 
     // Hover over saved wine to reveal delete button

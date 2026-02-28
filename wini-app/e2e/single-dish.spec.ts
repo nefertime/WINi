@@ -1,8 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch } from "./helpers";
+import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch, dismissCookieConsent } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Single dish filtering (Task 1)", () => {
+  test.beforeEach(async ({ page }) => {
+    await dismissCookieConsent(page);
+  });
+
   test("dismissing dishes until one remains shows only its paired wines", async ({ page }) => {
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
     await page.goto("/");

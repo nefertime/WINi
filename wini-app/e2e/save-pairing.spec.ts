@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch, savePairing } from "./helpers";
+import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch, savePairing, dismissCookieConsent } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Save Pairing", () => {
   test.beforeEach(async ({ page }) => {
+    await dismissCookieConsent(page);
     await page.goto("/");
     await page.evaluate(() => {
       localStorage.removeItem("wini_sessions");
@@ -32,7 +33,7 @@ test.describe("Save Pairing", () => {
     await savePairing(page);
 
     // Open hamburger menu
-    const menuBtn = page.locator("button").first();
+    const menuBtn = page.getByLabel("Open menu");
     await menuBtn.click();
     await page.waitForTimeout(400);
 
@@ -60,7 +61,7 @@ test.describe("Save Pairing", () => {
     await expect(page.locator('[aria-label="Save this pairing"]')).toBeVisible();
 
     // Open menu and check Previous Pairings
-    const menuBtn = page.locator("button").first();
+    const menuBtn = page.getByLabel("Open menu");
     await menuBtn.click();
     await page.waitForTimeout(400);
 
@@ -88,7 +89,7 @@ test.describe("Save Pairing", () => {
     await savePairing(page);
 
     // Open menu → Previous Pairings → click session
-    const menuBtn = page.locator("button").first();
+    const menuBtn = page.getByLabel("Open menu");
     await menuBtn.click();
     await page.waitForTimeout(400);
 

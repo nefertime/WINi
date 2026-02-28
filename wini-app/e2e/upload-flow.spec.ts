@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch } from "./helpers";
+import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch, dismissCookieConsent } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Upload flow", () => {
   test.beforeEach(async ({ page }) => {
+    await dismissCookieConsent(page);
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
     await page.goto("/");
   });

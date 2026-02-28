@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch } from "./helpers";
+import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch, dismissCookieConsent } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Navigation", () => {
   test.beforeEach(async ({ page }) => {
+    await dismissCookieConsent(page);
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
     await page.goto("/");
   });
@@ -20,7 +21,8 @@ test.describe("Navigation", () => {
     await page.waitForTimeout(1200);
 
     // Should be back on home screen — search bar with placeholder visible
-    const placeholder = page.locator("text=Take a photo of food & wine menu");
+    // Desktop shows "Upload" vs mobile "Take a photo"
+    const placeholder = page.locator("text=/photo of food & wine menu/");
     await expect(placeholder).toBeVisible({ timeout: 5000 });
   });
 

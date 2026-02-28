@@ -283,9 +283,9 @@ export default function InlinePairingResults({
                   }}
                 >
                   <div className="flex items-center" style={{ gap: "clamp(0.35rem, 0.6vw, 0.6rem)" }}>
-                    <span style={{ fontSize: "clamp(0.7rem, 0.9vw, 0.85rem)" }}>{categoryIcons[dish.category] || "\u{1F37D}"}</span>
+                    <span className="shrink-0" style={{ fontSize: "clamp(0.7rem, 0.9vw, 0.85rem)" }}>{categoryIcons[dish.category] || "\u{1F37D}"}</span>
                     <span
-                      className="leading-tight truncate"
+                      className="leading-tight line-clamp-2 min-w-0"
                       style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 500, color: "var(--cream-lightest)", fontSize: "clamp(0.8rem, 1.3vw, 1.05rem)" }}
                     >
                       {dish.name}
@@ -301,10 +301,10 @@ export default function InlinePairingResults({
                       onClick={(e) => { e.stopPropagation(); onDismissDish(dish.id); }}
                       className="absolute flex items-center justify-center transition-all duration-150 hover:scale-110"
                       style={{
-                        top: "0.3rem",
-                        right: "0.3rem",
-                        width: "1.3rem",
-                        height: "1.3rem",
+                        top: "-0.35rem",
+                        right: "-0.35rem",
+                        width: "2.75rem",
+                        height: "2.75rem",
                         borderRadius: "50%",
                         background: "rgba(250, 246, 240, 0.06)",
                         border: "none",
@@ -447,7 +447,7 @@ export default function InlinePairingResults({
                       style={{ background: typeColors[wine.type] || "#C9A84C", width: "clamp(0.4rem, 0.6vw, 0.55rem)", height: "clamp(0.4rem, 0.6vw, 0.55rem)" }}
                     />
                     <span
-                      className="leading-tight truncate min-w-0"
+                      className="leading-tight line-clamp-2 min-w-0"
                       style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 500, color: textColor, fontSize: `calc(clamp(0.8rem, 1.3vw, 1.05rem) * ${wineScale})`, transition: "color 0.25s ease" }}
                     >
                       {wine.name}
@@ -472,7 +472,8 @@ export default function InlinePairingResults({
                     <div className="shrink-0 relative flex flex-col items-center" style={{ width: "clamp(14px, 1.3vw, 19px)", marginTop: "2px" }}>
                       <button
                         onClick={(e) => handleToggleFavorite(wine, e)}
-                        className="cursor-pointer transition-transform duration-200 hover:scale-110 group/heart"
+                        className="cursor-pointer transition-transform duration-200 hover:scale-110 group/heart flex items-center justify-center"
+                        style={{ minWidth: "2.75rem", minHeight: "2.75rem" }}
                         aria-label={favoriteIds.has(wine.id) ? "Remove from favorites" : "Add to favorites"}
                       >
                         <svg className="transition-colors duration-150" style={{ width: "clamp(14px, 1.3vw, 19px)", height: "clamp(14px, 1.3vw, 19px)" }} viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
@@ -489,7 +490,7 @@ export default function InlinePairingResults({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5 }}
                             transition={{ duration: 0.15, ease }}
-                            style={{ position: "absolute", top: "100%", marginTop: "1px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                            style={{ position: "absolute", top: "85%", marginTop: "1px", display: "flex", alignItems: "center", justifyContent: "center" }}
                             title="Top pick"
                           >
                             <svg style={{ width: "clamp(14px, 1.3vw, 19px)", height: "clamp(14px, 1.3vw, 19px)" }} viewBox="0 0 24 24" fill="#C9A84C" stroke="rgba(26, 10, 14, 0.35)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">

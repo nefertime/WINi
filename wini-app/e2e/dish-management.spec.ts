@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch } from "./helpers";
+import { mockAnalyzeAPI, uploadMenu, waitForResults, submitSearch, dismissCookieConsent } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Dish management (Task 4)", () => {
   test.beforeEach(async ({ page }) => {
+    await dismissCookieConsent(page);
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
     await page.goto("/");
     await uploadMenu(page);
@@ -69,6 +70,14 @@ test.describe("Dish management (Task 4)", () => {
     // 5 active dishes already at cap — shelf buttons should be disabled
     const tiramisuBtn = page.locator("button", { hasText: "Tiramisu" });
     await expect(tiramisuBtn).toBeDisabled();
+  });
+
+  test("shelf pills show category emoji", async ({ page }) => {
+    // Tiramisu is category "dessert" → 🍰
+    const tiramisuBtn = page.locator("button", { hasText: "Tiramisu" });
+    // Should contain the dessert emoji
+    const emojiSpan = tiramisuBtn.locator("span").first();
+    await expect(emojiSpan).toBeVisible();
   });
 
   test("dismiss then add allows shelf dish to activate", async ({ page }) => {

@@ -92,7 +92,7 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
         <button
           onClick={onClose}
           aria-label="Close wine details"
-          className="absolute top-5 right-5 z-10 w-8 h-8 rounded-full flex items-center justify-center text-cream/40 hover:text-cream-lightest transition-colors cursor-pointer"
+          className="absolute top-4 right-4 z-10 w-11 h-11 rounded-full flex items-center justify-center text-cream/40 hover:text-cream-lightest transition-colors cursor-pointer"
           style={{ background: "rgba(255, 255, 255, 0.06)" }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

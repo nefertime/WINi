@@ -5,7 +5,10 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { Dish, Session, FavoriteWine, Wine } from "@/lib/types";
 import { getSessions, deleteSession, getFavorites, removeFavorite } from "@/lib/storage";
+import { BOTTLES, BOTTLE_INFO } from "@/lib/bottles";
 import AccountPanel from "@/components/AccountPanel";
+
+export type MenuSection = "pairings" | "saved" | "promoted" | "account" | "about" | null;
 
 type HamburgerMenuProps = {
   isOpen: boolean;
@@ -13,16 +16,16 @@ type HamburgerMenuProps = {
   onRestore: (session: Session) => void;
   onWineDetail?: (wine: Wine, pairedDishes?: Dish[]) => void;
   onOpenAuth?: (view?: "signin" | "signup") => void;
+  initialSection?: MenuSection;
 };
 
 const ease = [0.16, 1, 0.3, 1] as const;
-
-type MenuSection = "pairings" | "saved" | "account" | "about" | null;
 
 const menuItems: { id: MenuSection; label: string; icon: string }[] = [
   { id: "account", label: "Account", icon: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 3a4 4 0 100 8 4 4 0 000-8z" },
   { id: "pairings", label: "Previous Pairings", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
   { id: "saved", label: "Saved Wines", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
+  { id: "promoted", label: "Promoted Wines", icon: "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" },
   { id: "about", label: "About WINi", icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
 ];
 
@@ -31,6 +34,7 @@ const typeColors: Record<string, string> = {
   white: "#C9A84C",
   "rosé": "#D4707A",
   sparkling: "#E8DCC8",
+  both: "#B8A080",
 };
 
 const categoryIcons: Record<string, string> = {
@@ -50,7 +54,7 @@ const categoryIcons: Record<string, string> = {
 const SPILL_PATH =
   "M 0.03 0.008 C 0.22 -0.004 0.58 0.006 0.97 0.008 C 1.02 0.02 1.015 0.08 1.008 0.2 C 1.0 0.38 1.02 0.52 1.012 0.68 C 1.005 0.8 1.03 0.92 0.96 1.01 C 0.88 1.04 0.68 0.985 0.5 1.015 C 0.32 1.035 0.15 0.995 0.05 1.02 C -0.015 1.03 -0.01 0.94 -0.005 0.8 C 0.0 0.64 -0.018 0.48 0.0 0.32 C 0.012 0.18 -0.008 0.08 0.008 0.025 C 0.015 0.012 0.02 0.007 0.03 0.008 Z";
 
-export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail, onOpenAuth }: HamburgerMenuProps) {
+export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail, onOpenAuth, initialSection }: HamburgerMenuProps) {
   const { data: session } = useSession();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [favorites, setFavorites] = useState<FavoriteWine[]>([]);
@@ -59,13 +63,23 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
   const [accountPanelOpen, setAccountPanelOpen] = useState(false);
   const savedSectionRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
+  const [isMobileMenu, setIsMobileMenu] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const handler = (e: MediaQueryListEvent) => setIsMobileMenu(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   // Auto-expand Saved Wines when menu opens — sync state with prop change
   useEffect(() => {
     if (isOpen) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop-to-state sync
       setFavorites(getFavorites());
-      setActiveSection("saved");
+      setActiveSection(initialSection ?? "saved");
       setSelectedFav(null);
       setAccountPanelOpen(false);
     } else {
@@ -73,7 +87,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
       setSelectedFav(null);
       setAccountPanelOpen(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialSection]);
 
   const formatDate = (ts: number) => {
     const d = new Date(ts);
@@ -446,6 +460,72 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                       </motion.div>
                     )}
 
+                    {activeSection === "promoted" && item.id === "promoted" && (
+                      <motion.div
+                        key="promoted"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease }}
+                        className="overflow-hidden border-t"
+                        style={{ borderColor: "rgba(92, 10, 30, 0.1)" }}
+                      >
+                        <div className="px-3 py-2 max-h-72 overflow-y-auto">
+                          <div className="space-y-0.5">
+                            {BOTTLES.map((bottle) => {
+                              const info = BOTTLE_INFO[bottle.name];
+                              const typeColor = typeColors[bottle.type] || "#B8A080";
+                              const vivinoUrl = info?.buyUrl || `https://www.vivino.com/search/wines?q=${encodeURIComponent(bottle.name)}`;
+                              return (
+                                <a
+                                  key={bottle.name}
+                                  href={vivinoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 px-2 py-2 rounded-lg transition-colors duration-200 group cursor-pointer no-underline"
+                                  style={{ background: "transparent", textDecoration: "none" }}
+                                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(92,10,30,0.06)")}
+                                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                >
+                                  <div
+                                    className="w-3 h-3 rounded-full shrink-0"
+                                    style={{ background: typeColor, boxShadow: `0 0 8px ${typeColor}` }}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <p
+                                      className="text-base truncate"
+                                      style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 600, color: "#1A1A1A" }}
+                                    >
+                                      {bottle.name}
+                                    </p>
+                                    <p className="text-sm mt-0.5 capitalize" style={{ fontFamily: "var(--font-jost-family)", color: "rgba(26, 26, 26, 0.5)" }}>
+                                      {bottle.type}{info ? ` · ${info.grape}` : ""}{info ? ` · ${info.region}` : ""}
+                                    </p>
+                                  </div>
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="shrink-0 opacity-0 group-hover:opacity-60 transition-opacity"
+                                    style={{ color: "#5C0A1E" }}
+                                  >
+                                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                                    <polyline points="15 3 21 3 21 9" />
+                                    <line x1="10" y1="14" x2="21" y2="3" />
+                                  </svg>
+                                </a>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
                     {activeSection === "about" && item.id === "about" && (
                       <motion.div
                         key="about"
@@ -486,12 +566,23 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
             {selectedFav && activeSection === "saved" && (
               <motion.div
                 key="fav-popup"
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -6 }}
+                initial={{ opacity: 0, x: isMobileMenu ? 0 : -6, y: isMobileMenu ? -6 : 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: isMobileMenu ? 0 : -6, y: isMobileMenu ? -6 : 0 }}
                 transition={{ duration: 0.2, ease }}
                 className="fixed z-50 rounded-xl px-5 py-4"
-                style={{
+                style={isMobileMenu ? {
+                  width: "calc(100vw - 2rem)",
+                  left: "1rem",
+                  top: "calc(1rem + clamp(2.75rem, 8vw, 4rem) + 0.5rem + 18rem)",
+                  maxHeight: "40vh",
+                  overflowY: "auto" as const,
+                  background: "rgba(13, 13, 13, 0.92)",
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
+                } : {
                   width: 220,
                   left: "19.5rem",
                   top: Math.max(60, selectedFav.top - 8),

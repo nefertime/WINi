@@ -13,12 +13,30 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      name: "desktop",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+      grepInvert: /Responsive — (Mobile|Tablet)/,
     },
     {
       name: "mobile",
-      use: { ...devices["iPhone 14"] },
+      use: {
+        ...devices["iPhone 14"],
+        viewport: { width: 393, height: 852 },
+      },
+      grepInvert: /Responsive — (Desktop|Tablet)/,
+    },
+    {
+      name: "tablet",
+      use: {
+        viewport: { width: 820, height: 1180 },
+        userAgent: "Mozilla/5.0 (iPad; CPU OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+        hasTouch: true,
+        isMobile: false,
+      },
+      grepInvert: /Responsive — (Desktop|Mobile)/,
     },
   ],
   webServer: {

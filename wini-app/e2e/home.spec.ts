@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
+import { dismissCookieConsent } from "./helpers";
 
 test.describe("Home page", () => {
   test.beforeEach(async ({ page }) => {
+    await dismissCookieConsent(page);
     await page.goto("/");
   });
 
@@ -28,7 +30,7 @@ test.describe("Home page", () => {
   });
 
   test("shows placeholder text", async ({ page }) => {
-    const placeholder = page.locator("text=Take a photo of food & wine menu");
+    const placeholder = page.locator("text=/photo of food & wine menu/");
     await expect(placeholder).toBeVisible();
   });
 

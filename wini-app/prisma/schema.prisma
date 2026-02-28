@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,6 +17,11 @@ model User {
   age           Int?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?   @unique
+  subscriptionStatus    String?   @default("inactive")
+  subscriptionPeriodEnd DateTime?
 
   accounts      Account[]
   sessions      AuthSession[]
