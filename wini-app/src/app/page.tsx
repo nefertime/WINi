@@ -15,7 +15,8 @@ import DishShelf from "@/components/DishShelf";
 import AuthModal from "@/components/AuthModal";
 import { convertImageToJpeg } from "@/utils/imageUtils";
 import { AnalyzeResponse, Dish, Session, Wine } from "@/lib/types";
-import { saveSession, deleteSession, generateId } from "@/lib/storage";
+import { useStorage } from "@/hooks/useStorage";
+import AuthPrompt from "@/components/AuthPrompt";
 
 type AppState = "home" | "scanning" | "results";
 
@@ -42,6 +43,9 @@ export default function Home() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalView, setAuthModalView] = useState<"signin" | "signup">("signin");
   const [menuInitialSection, setMenuInitialSection] = useState<MenuSection>(null);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authPromptMessage, setAuthPromptMessage] = useState("");
+  const storage = useStorage();
 
   // Image preservation for back + regeneration
   const [lastBase64Images, setLastBase64Images] = useState<string[]>([]);
@@ -133,7 +137,7 @@ export default function Home() {
       if (!res.ok) throw new Error("Analysis failed");
 
       const data: AnalyzeResponse = await res.json();
-      const newId = generateId();
+      const newId = storage.generateId();
       setPairingData(data);
       setSessionId(newId);
       setIsPairingSaved(false);
@@ -142,13 +146,14 @@ export default function Home() {
     } catch (error) {
       console.error("Submit error:", error);
       const demoData = getDemoData();
-      const newId = generateId();
+      const newId = storage.generateId();
       setPairingData(demoData);
       setSessionId(newId);
       setIsPairingSaved(false);
       setState("results");
       layoutTimerRef.current = setTimeout(() => setLayoutMode("results"), 500);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- lastBase64Images accessed via ref pattern; storage.generateId is stable
   }, []);
 
   const handleRestore = useCallback((session: Session) => {
@@ -168,11 +173,16 @@ export default function Home() {
 
   const handleSavePairing = useCallback(() => {
     if (!pairingData || !sessionId) return;
+    if (!storage.isAuthenticated) {
+      setAuthPromptMessage("Sign in to save your pairings");
+      setShowAuthPrompt(true);
+      return;
+    }
     if (isPairingSaved) {
-      deleteSession(sessionId);
+      storage.deleteSession(sessionId);
       setIsPairingSaved(false);
     } else {
-      saveSession({
+      storage.saveSession({
         id: sessionId,
         timestamp: Date.now(),
         dishes: activeDishes,
@@ -185,7 +195,7 @@ export default function Home() {
       });
       setIsPairingSaved(true);
     }
-  }, [pairingData, sessionId, activeDishes, relevantWines, shelfDishes, isPairingSaved]);
+  }, [pairingData, sessionId, activeDishes, relevantWines, shelfDishes, isPairingSaved, storage]);
 
   const handleTranslate = useCallback(async () => {
     if (!pairingData || !pairingData.language || pairingData.language === "en") return;
@@ -462,6 +472,11 @@ export default function Home() {
                 onDismissDish={handleDismissDish}
                 isPairingSaved={isPairingSaved}
                 onSavePairing={handleSavePairing}
+                isAuthenticated={storage.isAuthenticated}
+                onAuthPrompt={() => {
+                  setAuthPromptMessage("Sign in to save your favorites");
+                  setShowAuthPrompt(true);
+                }}
               />
             </motion.div>
           )}
@@ -561,6 +576,18 @@ export default function Home() {
           />
         )}
       </AnimatePresence>
+
+      {/* Auth prompt toast for guest users */}
+      <AuthPrompt
+        show={showAuthPrompt}
+        message={authPromptMessage}
+        onSignIn={() => {
+          setShowAuthPrompt(false);
+          setAuthModalView("signin");
+          setAuthModalOpen(true);
+        }}
+        onDismiss={() => setShowAuthPrompt(false)}
+      />
 
       {/* Auth modal */}
       <AuthModal

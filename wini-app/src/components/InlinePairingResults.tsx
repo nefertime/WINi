@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dish, Wine, Pairing } from "@/lib/types";
 import WineDetailOverlay from "./WineDetailOverlay";
-import { saveFavorite, removeFavorite, isFavorite } from "@/lib/storage";
+import { useStorage } from "@/hooks/useStorage";
 
 type InlinePairingResultsProps = {
   dishes: Dish[];
@@ -14,6 +14,8 @@ type InlinePairingResultsProps = {
   onDismissDish?: (dishId: string) => void;
   isPairingSaved?: boolean;
   onSavePairing?: () => void;
+  isAuthenticated?: boolean;
+  onAuthPrompt?: () => void;
 };
 
 const typeColors: Record<string, string> = {
@@ -45,7 +47,10 @@ export default function InlinePairingResults({
   onDismissDish,
   isPairingSaved,
   onSavePairing,
+  isAuthenticated = false,
+  onAuthPrompt,
 }: InlinePairingResultsProps) {
+  const storage = useStorage();
   const activeDishes = dishes.filter((d) => !dismissedDishIds.has(d.id));
   const canDismiss = activeDishes.length > 1;
   const pairedDishIdSet = new Set(pairings.map((p) => p.dish_id));
@@ -56,7 +61,8 @@ export default function InlinePairingResults({
   const [isHolding, setIsHolding] = useState(false);
   const [detailWine, setDetailWine] = useState<{ wine: Wine; position: { x: number; y: number; right: number } } | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => {
-    const favs = wines.filter((w) => isFavorite(w));
+    if (!isAuthenticated) return new Set();
+    const favs = wines.filter((w) => storage.isFavorite(w));
     return new Set(favs.map((w) => w.id));
   });
   const [hoveredWineId, setHoveredWineId] = useState<string | null>(null);
@@ -154,19 +160,22 @@ export default function InlinePairingResults({
 
   const handleToggleFavorite = useCallback((wine: Wine, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      onAuthPrompt?.();
+      return;
+    }
     const isFav = favoriteIds.has(wine.id);
     if (isFav) {
-      removeFavorite(wine);
+      storage.removeFavorite(wine);
       setFavoriteIds((prev) => { const next = new Set(prev); next.delete(wine.id); return next; });
     } else {
-      // Find all dishes this wine is paired with for context
       const pairedDishIds = pairings.filter((p) => p.wine_id === wine.id).map((p) => p.dish_id);
       const pairedDishes = pairedDishIds.map((id) => dishes.find((d) => d.id === id)).filter((d): d is Dish => d !== undefined);
       const dishName = pairedDishes[0]?.name;
-      saveFavorite(wine, dishName, pairedDishes);
+      storage.saveFavorite(wine, dishName, pairedDishes);
       setFavoriteIds((prev) => new Set(prev).add(wine.id));
     }
-  }, [favoriteIds, pairings, dishes]);
+  }, [favoriteIds, pairings, dishes, isAuthenticated, onAuthPrompt, storage]);
 
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement;

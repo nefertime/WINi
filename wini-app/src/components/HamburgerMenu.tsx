@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { Dish, Session, FavoriteWine, Wine } from "@/lib/types";
-import { getSessions, deleteSession, getFavorites, removeFavorite } from "@/lib/storage";
+import { useStorage } from "@/hooks/useStorage";
 import { BOTTLES, BOTTLE_INFO } from "@/lib/bottles";
 import AccountPanel from "@/components/AccountPanel";
 
@@ -56,6 +56,7 @@ const SPILL_PATH =
 
 export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail, onOpenAuth, initialSection }: HamburgerMenuProps) {
   const { data: session } = useSession();
+  const storage = useStorage();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [favorites, setFavorites] = useState<FavoriteWine[]>([]);
   const [activeSection, setActiveSection] = useState<MenuSection>(null);
@@ -77,8 +78,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
   // Auto-expand Saved Wines when menu opens — sync state with prop change
   useEffect(() => {
     if (isOpen) {
+      storage.getFavorites().then(setFavorites);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop-to-state sync
-      setFavorites(getFavorites());
       setActiveSection(initialSection ?? "saved");
       setSelectedFav(null);
       setAccountPanelOpen(false);
@@ -87,7 +88,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
       setSelectedFav(null);
       setAccountPanelOpen(false);
     }
-  }, [isOpen, initialSection]);
+  }, [isOpen, initialSection, storage]);
 
   const formatDate = (ts: number) => {
     const d = new Date(ts);
@@ -102,7 +103,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
   };
 
   const handleDelete = (id: string) => {
-    deleteSession(id);
+    storage.deleteSession(id);
     setSessions((prev) => prev.filter((s) => s.id !== id));
   };
 
@@ -165,8 +166,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                     transition={{ delay: itemDelay + i * 0.05, duration: 0.2, ease }}
                     onClick={() => {
                       const next = activeSection === item.id ? null : item.id;
-                      if (next === "pairings") setSessions(getSessions());
-                      if (next === "saved") setFavorites(getFavorites());
+                      if (next === "pairings") storage.getSessions().then(setSessions);
+                      if (next === "saved") storage.getFavorites().then(setFavorites);
                       setActiveSection(next);
                       setSelectedFav(null);
                       setAccountPanelOpen(false);
@@ -312,7 +313,27 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                         style={{ borderColor: "rgba(92, 10, 30, 0.1)" }}
                       >
                         <div className="px-3 py-2 max-h-48 overflow-y-auto">
-                          {sessions.length === 0 ? (
+                          {!storage.isAuthenticated ? (
+                            <div className="py-2 px-1">
+                              <p
+                                className="text-sm italic mb-2"
+                                style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
+                              >
+                                Sign in to save your pairing history
+                              </p>
+                              <button
+                                onClick={() => { onClose(); onOpenAuth?.("signin"); }}
+                                className="text-xs py-1.5 px-3 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+                                style={{
+                                  fontFamily: "var(--font-jost-family)", fontWeight: 500,
+                                  color: "var(--charcoal)", background: "var(--gold)",
+                                  border: "none", cursor: "pointer",
+                                }}
+                              >
+                                Sign In
+                              </button>
+                            </div>
+                          ) : sessions.length === 0 ? (
                             <p
                               className="text-sm py-2 px-1 italic"
                               style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
@@ -380,7 +401,27 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                         style={{ borderColor: "rgba(92, 10, 30, 0.1)" }}
                       >
                         <div ref={savedSectionRef} className="px-3 py-2 max-h-64 overflow-y-auto">
-                          {favorites.length === 0 ? (
+                          {!storage.isAuthenticated ? (
+                            <div className="py-2 px-1">
+                              <p
+                                className="text-sm italic mb-2"
+                                style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
+                              >
+                                Sign in to save your favorite wines
+                              </p>
+                              <button
+                                onClick={() => { onClose(); onOpenAuth?.("signin"); }}
+                                className="text-xs py-1.5 px-3 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+                                style={{
+                                  fontFamily: "var(--font-jost-family)", fontWeight: 500,
+                                  color: "var(--charcoal)", background: "var(--gold)",
+                                  border: "none", cursor: "pointer",
+                                }}
+                              >
+                                Sign In
+                              </button>
+                            </div>
+                          ) : favorites.length === 0 ? (
                             <p
                               className="text-sm py-2 px-1 italic"
                               style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.45)" }}
@@ -431,7 +472,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        removeFavorite(fav.wine);
+                                        storage.removeFavorite(fav.wine);
                                         setFavorites((prev) => prev.filter((f) => f.id !== fav.id));
                                         if (selectedFav?.fav.id === fav.id) setSelectedFav(null);
                                       }}

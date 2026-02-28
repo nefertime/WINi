@@ -20,17 +20,14 @@ export function useStorage() {
   }, [isAuthenticated]);
 
   const getSessions = async (): Promise<Session[]> => {
-    if (!isAuthenticated) return localStorage.getSessions();
+    if (!isAuthenticated) return [];
     const res = await fetch("/api/user/pairings");
-    if (!res.ok) return localStorage.getSessions();
+    if (!res.ok) return [];
     return res.json();
   };
 
   const saveSession = async (s: Session): Promise<void> => {
-    if (!isAuthenticated) {
-      localStorage.saveSession(s);
-      return;
-    }
+    if (!isAuthenticated) return;
     await fetch("/api/user/pairings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -39,10 +36,7 @@ export function useStorage() {
   };
 
   const deleteSessionById = async (id: string): Promise<void> => {
-    if (!isAuthenticated) {
-      localStorage.deleteSession(id);
-      return;
-    }
+    if (!isAuthenticated) return;
     await fetch("/api/user/pairings", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -51,17 +45,14 @@ export function useStorage() {
   };
 
   const getFavorites = async (): Promise<FavoriteWine[]> => {
-    if (!isAuthenticated) return localStorage.getFavorites();
+    if (!isAuthenticated) return [];
     const res = await fetch("/api/user/favorites");
-    if (!res.ok) return localStorage.getFavorites();
+    if (!res.ok) return [];
     return res.json();
   };
 
   const saveFavorite = async (wine: Wine, pairedWith?: string, pairedDishData?: Dish[]): Promise<void> => {
-    if (!isAuthenticated) {
-      localStorage.saveFavorite(wine, pairedWith, pairedDishData);
-      return;
-    }
+    if (!isAuthenticated) return;
     await fetch("/api/user/favorites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -70,10 +61,7 @@ export function useStorage() {
   };
 
   const removeFavorite = async (wine: Wine): Promise<void> => {
-    if (!isAuthenticated) {
-      localStorage.removeFavorite(wine);
-      return;
-    }
+    if (!isAuthenticated) return;
     await fetch("/api/user/favorites", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -81,10 +69,12 @@ export function useStorage() {
     });
   };
 
-  const isFavorite = (wine: Wine): boolean => {
-    // Sync check for UI — only localStorage for now
-    // Server favorites are loaded async and cached in component state
-    return localStorage.isFavorite(wine);
+  const isFavorite = (_wine: Wine): boolean => {
+    // Guests can't have favorites — no localStorage writes
+    if (!isAuthenticated) return false;
+    // For authenticated users, favorites are loaded async into component state
+    // This sync check is a fallback only
+    return localStorage.isFavorite(_wine);
   };
 
   return {

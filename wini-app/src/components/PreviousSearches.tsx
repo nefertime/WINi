@@ -1,19 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Session } from "@/lib/types";
-import { getSessions, deleteSession } from "@/lib/storage";
+import { useStorage } from "@/hooks/useStorage";
 
 type PreviousSearchesProps = {
   onRestore: (session: Session) => void;
 };
 
 export default function PreviousSearches({ onRestore }: PreviousSearchesProps) {
-  const [sessions, setSessions] = useState<Session[]>(() => getSessions());
+  const storage = useStorage();
+  const [sessions, setSessions] = useState<Session[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
-  if (sessions.length === 0) return null;
+  useEffect(() => {
+    storage.getSessions().then(setSessions);
+  }, [storage]);
+
+  if (!storage.isAuthenticated || sessions.length === 0) return null;
 
   const formatDate = (ts: number) => {
     const d = new Date(ts);
@@ -76,7 +81,7 @@ export default function PreviousSearches({ onRestore }: PreviousSearchesProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteSession(session.id);
+                      storage.deleteSession(session.id);
                       setSessions((prev) => prev.filter((s) => s.id !== session.id));
                     }}
                     className="opacity-0 group-hover:opacity-100 text-cream/20 hover:text-cream/50 transition-all"
