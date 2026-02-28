@@ -9,7 +9,7 @@ import ScanningAnimation from "@/components/ScanningAnimation";
 import InlinePairingResults from "@/components/InlinePairingResults";
 import FloatingHints from "@/components/FloatingHints";
 import MenuButton from "@/components/MenuButton";
-import HamburgerMenu from "@/components/HamburgerMenu";
+import HamburgerMenu, { MenuSection } from "@/components/HamburgerMenu";
 import WineDetailOverlay from "@/components/WineDetailOverlay";
 import DishShelf from "@/components/DishShelf";
 import AuthModal from "@/components/AuthModal";
@@ -41,6 +41,7 @@ export default function Home() {
   const [isPairingSaved, setIsPairingSaved] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalView, setAuthModalView] = useState<"signin" | "signup">("signin");
+  const [menuInitialSection, setMenuInitialSection] = useState<MenuSection>(null);
 
   // Image preservation for back + regeneration
   const [lastBase64Images, setLastBase64Images] = useState<string[]>([]);
@@ -224,6 +225,11 @@ export default function Home() {
     setLastBase64Images([]);
   }, []);
 
+  const handlePromotedWinesClick = useCallback(() => {
+    setMenuInitialSection("promoted");
+    setMenuOpen(true);
+  }, []);
+
   // Pairing matrix: max wines per dish based on dish count
   const getMaxWinesPerDish = useCallback((count: number) => {
     if (count <= 1) return 5;
@@ -357,20 +363,26 @@ export default function Home() {
     <main className="min-h-dvh relative overflow-x-hidden" style={{ background: "var(--charcoal)" }} onClick={handlePageClick}>
       {/* Menu button - always visible */}
       <MenuButton
-        onClick={() => setMenuOpen((prev) => !prev)}
+        onClick={() => {
+          setMenuOpen((prev) => {
+            if (prev) setMenuInitialSection(null);
+            return !prev;
+          });
+        }}
         isOpen={menuOpen}
       />
 
       {/* Hamburger menu */}
       <HamburgerMenu
         isOpen={menuOpen}
-        onClose={() => setMenuOpen(false)}
+        onClose={() => { setMenuOpen(false); setMenuInitialSection(null); }}
         onRestore={handleRestore}
         onWineDetail={(wine, pairedDishes) => setMenuDetailWine({ wine, pairedDishes })}
         onOpenAuth={(view) => {
           setAuthModalView(view ?? "signin");
           setAuthModalOpen(true);
         }}
+        initialSection={menuInitialSection}
       />
 
       {/* Background: Split — always visible */}
@@ -427,7 +439,7 @@ export default function Home() {
           }}
           transition={{ duration: 0.6, ease }}
         >
-          <BottleCarousel ref={carouselRef} isCompact={showResultsLayout} />
+          <BottleCarousel ref={carouselRef} isCompact={showResultsLayout} onPromotedWinesClick={handlePromotedWinesClick} />
         </motion.div>
 
         {/* Inline pairing results */}

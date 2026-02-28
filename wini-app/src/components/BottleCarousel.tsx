@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, forwardRef, useImperativeHandle } from "react";
+import { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { BOTTLES, isSparklingBottle, BOTTLE_INFO } from "@/lib/bottles";
@@ -8,6 +8,7 @@ import BubbleParticles from "./BubbleParticles";
 
 type BottleCarouselProps = {
   isCompact?: boolean;
+  onPromotedWinesClick?: () => void;
 };
 
 export type BottleCarouselRef = {
@@ -19,11 +20,17 @@ const ease = [0.16, 1, 0.3, 1] as const;
 const HOVER_COOLDOWN = 500;
 
 const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
-  function BottleCarousel({ isCompact = false }, ref) {
+  function BottleCarousel({ isCompact = false, onPromotedWinesClick }, ref) {
     const [index, setIndex] = useState(0);
     const [showInfo, setShowInfo] = useState(false);
     const [isPulsing, setIsPulsing] = useState(false);
     const lastCycleRef = useRef(0);
+    const [isTouch, setIsTouch] = useState(false);
+
+    useEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR-safe client detection
+      setIsTouch(window.matchMedia("(pointer: coarse)").matches);
+    }, []);
 
     const cycle = useCallback(() => {
       setIndex((i) => (i + 1) % BOTTLES.length);
@@ -134,6 +141,42 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               >
                 i
               </span>
+            </motion.button>
+          )}
+
+          {/* "PROMOTED WINES" label — vertical, right side */}
+          {!isCompact && onPromotedWinesClick && (
+            <motion.button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPromotedWinesClick();
+              }}
+              animate={{
+                opacity: isTouch ? 0.4 : (showInfo || isPulsing) ? 0.85 : 0,
+              }}
+              transition={{ duration: 0.3 }}
+              className="absolute z-[5] flex items-center justify-center"
+              style={{
+                top: "15%",
+                left: "clamp(-4.5rem, -7vw, -3rem)",
+                transform: "rotate(-90deg)",
+                transformOrigin: "center center",
+                fontFamily: "var(--font-jost-family)",
+                fontWeight: 400,
+                fontSize: "clamp(0.6rem, 1.2vw, 0.7rem)",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                color: "#E8DCC8",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                padding: "0.75rem 0.5rem",
+                minHeight: "2.75rem",
+              }}
+              aria-label="View promoted wines"
+            >
+              PROMOTED WINES
             </motion.button>
           )}
 
