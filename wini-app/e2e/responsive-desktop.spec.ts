@@ -119,6 +119,83 @@ test.describe("Responsive — Desktop (1440×900)", () => {
     expect(popupBox!.x).toBeGreaterThan(250);
   });
 
+  test("home page carousel and elements positioned correctly", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+    await page.waitForTimeout(500);
+
+    // Bottle image visible and reasonably sized
+    const bottle = page.locator('img[src*="bottles"]').first();
+    await expect(bottle).toBeVisible();
+    const bottleBox = await bottle.boundingBox();
+    expect(bottleBox).not.toBeNull();
+    expect(bottleBox!.width).toBeGreaterThanOrEqual(80);
+    // Bottle should be roughly centered (within 300px of center)
+    expect(bottleBox!.x + bottleBox!.width / 2).toBeGreaterThan(420);
+    expect(bottleBox!.x + bottleBox!.width / 2).toBeLessThan(1020);
+
+    // Logo visible
+    const logo = page.locator("text=WINi").first();
+    await expect(logo).toBeVisible();
+
+    // Search bar visible and within viewport
+    const searchBar = page.locator('[aria-label="Search"]').first();
+    await expect(searchBar).toBeVisible();
+    const searchBox = await searchBar.boundingBox();
+    expect(searchBox).not.toBeNull();
+    expect(searchBox!.x + searchBox!.width).toBeLessThanOrEqual(1440);
+
+    // Info button visible
+    const infoButton = page.locator('[aria-label="Wine information"]').first();
+    await expect(infoButton).toBeVisible();
+    const infoBox = await infoButton.boundingBox();
+    expect(infoBox).not.toBeNull();
+    expect(infoBox!.x + infoBox!.width).toBeLessThanOrEqual(1440);
+    expect(infoBox!.y).toBeGreaterThanOrEqual(0);
+  });
+
+  test("promoted wines label visible on home", async ({ page }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+    await page.waitForTimeout(500);
+
+    const promotedLabel = page.locator('[aria-label="View promoted wines"]');
+    await expect(promotedLabel).toBeVisible();
+
+    const box = await promotedLabel.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+  });
+
+  test("hamburger menu promoted wines compact layout", async ({ page }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+
+    // Open menu
+    await page.getByLabel("Open menu").click({ force: true });
+    await page.waitForTimeout(400);
+
+    // Click Promoted Wines
+    await page.locator("text=Promoted Wines").first().click();
+    await page.waitForTimeout(300);
+
+    // Count vivino links — should have many (28 total wines)
+    const vivinoLinks = page.locator('a[href*="vivino"]');
+    const count = await vivinoLinks.count();
+    expect(count).toBeGreaterThanOrEqual(20);
+
+    // First wine subtitle should contain · (grape · region format)
+    const firstSubtitle = page.locator('a[href*="vivino"] p').nth(1);
+    const subtitleText = await firstSubtitle.textContent();
+    expect(subtitleText).toContain("·");
+  });
+
   test("wine cards and dish cards at comfortable size", async ({ page }) => {
     await page.goto("/");
     await cleanState(page);

@@ -157,6 +157,61 @@ test.describe("Responsive — Tablet (820×1180)", () => {
     expect(overlayBounds!.width).toBeLessThanOrEqual(500);
   });
 
+  test("home page elements within tablet viewport", async ({ page }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+    await page.waitForTimeout(500);
+
+    // Bottle image visible and within tablet width
+    const bottle = page.locator('img[src*="bottles"]').first();
+    await expect(bottle).toBeVisible();
+    const bottleBox = await bottle.boundingBox();
+    expect(bottleBox).not.toBeNull();
+    expect(bottleBox!.x + bottleBox!.width).toBeLessThanOrEqual(820);
+
+    // Info button visible and within viewport
+    const infoButton = page.locator('[aria-label="Wine information"]').first();
+    await expect(infoButton).toBeVisible();
+    const infoBox = await infoButton.boundingBox();
+    expect(infoBox).not.toBeNull();
+    expect(infoBox!.x + infoBox!.width).toBeLessThanOrEqual(820);
+
+    // Promoted wines label not clipped
+    const promotedLabel = page.locator('[aria-label="View promoted wines"]');
+    await expect(promotedLabel).toBeVisible();
+    const labelBox = await promotedLabel.boundingBox();
+    expect(labelBox).not.toBeNull();
+    expect(labelBox!.x).toBeGreaterThanOrEqual(0);
+  });
+
+  test("menu text readability and compact wine format", async ({ page }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+
+    // Open menu
+    await page.getByLabel("Open menu").click({ force: true });
+    await page.waitForTimeout(400);
+
+    // Click Previous Pairings
+    await page.locator("text=Previous Pairings").first().click();
+    await page.waitForTimeout(300);
+
+    // "No saved pairings yet" should be visible
+    const noPairings = page.locator("text=/no saved pairings/i").first();
+    await expect(noPairings).toBeVisible();
+
+    // Click Promoted Wines and check subtitle format
+    await page.locator("text=Promoted Wines").first().click();
+    await page.waitForTimeout(300);
+
+    // First wine subtitle should contain · (grape · region)
+    const firstSubtitle = page.locator('a[href*="vivino"] p').nth(1);
+    const subtitleText = await firstSubtitle.textContent();
+    expect(subtitleText).toContain("·");
+  });
+
   test("DishShelf pills wrap gracefully", async ({ page }) => {
     await page.goto("/");
     await cleanState(page);

@@ -26,6 +26,7 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
     const [isPulsing, setIsPulsing] = useState(false);
     const lastCycleRef = useRef(0);
     const [isTouch, setIsTouch] = useState(false);
+    const [promotedHover, setPromotedHover] = useState(false);
 
     useEffect(() => {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR-safe client detection
@@ -117,7 +118,7 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               } : { duration: 0.2 }}
               className="absolute z-10 flex items-center justify-center"
               style={{
-                top: "60%",
+                top: "66%",
                 right: "clamp(-2rem, -3vw, -1rem)",
                 width: "clamp(3.8rem, 7.8vw, 5rem)",
                 height: "clamp(3.8rem, 7.8vw, 5rem)",
@@ -151,13 +152,20 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
                 e.stopPropagation();
                 onPromotedWinesClick();
               }}
+              onMouseEnter={() => setPromotedHover(true)}
+              onMouseLeave={() => setPromotedHover(false)}
               animate={{
-                opacity: isTouch ? 0.4 : (showInfo || isPulsing) ? 0.85 : 0,
+                opacity: isTouch
+                  ? promotedHover ? [0.4, 0.7, 0.4] : 0.4
+                  : promotedHover ? [0.5, 0.85, 0.5] : (showInfo || isPulsing) ? 0.85 : 0.3,
               }}
-              transition={{ duration: 0.3 }}
+              transition={promotedHover
+                ? { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
+                : { duration: 0.3 }
+              }
               className="absolute z-[5] flex items-center justify-center"
               style={{
-                top: "15%",
+                top: "28%",
                 left: "clamp(-4.5rem, -7vw, -3rem)",
                 transform: "rotate(-90deg)",
                 transformOrigin: "center center",
@@ -194,7 +202,7 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
                 onMouseLeave={() => setShowInfo(false)}
                 style={{
                   top: "20%",
-                  right: "clamp(-8rem, -12vw, -12rem)",
+                  right: "clamp(-10rem, -14vw, -13rem)",
                   width: "13rem",
                   background: "rgba(13, 13, 13, 0.92)",
                   backdropFilter: "blur(24px)",

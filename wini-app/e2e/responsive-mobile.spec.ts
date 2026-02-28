@@ -215,6 +215,76 @@ test.describe("Responsive — Mobile (393×852)", () => {
     await expect(page.locator("text=Saved Wines").first()).not.toBeVisible();
   });
 
+  test("home page carousel fits within mobile viewport", async ({ page }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+    await page.waitForTimeout(500);
+
+    // Bottle image should fit within mobile width
+    const bottle = page.locator('img[src*="bottles"]').first();
+    await expect(bottle).toBeVisible();
+    const bottleBox = await bottle.boundingBox();
+    expect(bottleBox).not.toBeNull();
+    expect(bottleBox!.x).toBeGreaterThanOrEqual(0);
+    expect(bottleBox!.x + bottleBox!.width).toBeLessThanOrEqual(393);
+
+    // Search bar visible and within viewport
+    const searchBar = page.locator('[aria-label="Search"]').first();
+    await expect(searchBar).toBeVisible();
+    const searchBox = await searchBar.boundingBox();
+    expect(searchBox).not.toBeNull();
+    expect(searchBox!.y + searchBox!.height).toBeLessThanOrEqual(852);
+  });
+
+  test("promoted wines label visible on touch devices", async ({ page }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+    await page.waitForTimeout(500);
+
+    const promotedLabel = page.locator('[aria-label="View promoted wines"]');
+    await expect(promotedLabel).toBeVisible();
+
+    const box = await promotedLabel.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(393);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(852);
+  });
+
+  test("hamburger menu promoted wines scrollable", async ({ page }) => {
+    await page.goto("/");
+    await cleanState(page);
+    await page.goto("/");
+
+    // Open menu
+    await page.getByLabel("Open menu").click({ force: true });
+    await page.waitForTimeout(400);
+
+    // Click Promoted Wines
+    await page.locator("text=Promoted Wines").first().click();
+    await page.waitForTimeout(300);
+
+    // Promoted section visible with at least one wine link
+    const vivinoLinks = page.locator('a[href*="vivino"]');
+    expect(await vivinoLinks.count()).toBeGreaterThanOrEqual(1);
+    await expect(vivinoLinks.first()).toBeVisible();
+
+    // Menu nav should not overflow viewport
+    const navBounds = await page.evaluate(() => {
+      const nav = document.querySelector("nav");
+      if (!nav) return null;
+      const rect = nav.getBoundingClientRect();
+      return { bottom: rect.bottom, right: rect.right };
+    });
+
+    if (navBounds) {
+      expect(navBounds.right).toBeLessThanOrEqual(393);
+    }
+  });
+
   test("two-column results layout is legible", async ({ page }) => {
     await page.goto("/");
     await cleanState(page);

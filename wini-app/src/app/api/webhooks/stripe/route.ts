@@ -64,9 +64,12 @@ export async function POST(request: Request) {
             where: { id: user.id },
             data: {
               subscriptionStatus: subscription.status,
-              subscriptionPeriodEnd: new Date(
-                subscription.current_period_end * 1000
-              ),
+              subscriptionPeriodEnd: subscription.items.data[0]
+                ?.current_period_end
+                ? new Date(
+                    subscription.items.data[0].current_period_end * 1000
+                  )
+                : undefined,
             },
           });
         }

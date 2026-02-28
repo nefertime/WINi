@@ -33,7 +33,7 @@ const typeColors: Record<string, string> = {
   red: "#9B2335",
   white: "#C9A84C",
   "rosé": "#D4707A",
-  sparkling: "#E8DCC8",
+  sparkling: "#D4C27A",
   both: "#B8A080",
 };
 
@@ -128,15 +128,6 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* SVG clip-path definition (zero-size, doesn't affect layout) */}
-          <svg width="0" height="0" style={{ position: "absolute" }}>
-            <defs>
-              <clipPath id="wine-spill-clip" clipPathUnits="objectBoundingBox">
-                <path d={SPILL_PATH} />
-              </clipPath>
-            </defs>
-          </svg>
-
           {/* Invisible backdrop to close on outside click */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -159,9 +150,9 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
               left: "1rem",
               width: "18rem",
               background: "#E8DCC8",
-              clipPath: "url(#wine-spill-clip)",
+              borderRadius: "0.75rem",
               transformOrigin: "12% 0%",
-              filter: "drop-shadow(0 8px 32px rgba(92, 10, 30, 0.18))",
+              boxShadow: "0 8px 32px rgba(92, 10, 30, 0.18)",
             }}
           >
             {/* Menu items — each with its expanded section directly below */}
@@ -180,8 +171,10 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                       setSelectedFav(null);
                       setAccountPanelOpen(false);
                     }}
-                    className="w-full px-4 py-2.5 text-left transition-colors duration-200"
+                    className="w-full py-2.5 text-left transition-colors duration-200 cursor-pointer"
                     style={{
+                      paddingLeft: "0.3rem",
+                      paddingRight: "1rem",
                       background: activeSection === item.id ? "rgba(92, 10, 30, 0.08)" : "transparent",
                     }}
                   >
@@ -260,7 +253,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                             <>
                               <p
                                 className="text-base italic mb-3"
-                                style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.45)" }}
+                                style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
                               >
                                 Sign in to sync your pairings across devices
                               </p>
@@ -322,7 +315,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                           {sessions.length === 0 ? (
                             <p
                               className="text-sm py-2 px-1 italic"
-                              style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.45)" }}
+                              style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
                             >
                               No saved pairings yet
                             </p>
@@ -431,8 +424,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                       >
                                         {fav.wine.name}
                                       </p>
-                                      <p className="text-sm mt-0.5 capitalize" style={{ fontFamily: "var(--font-jost-family)", fontWeight: 500, color: typeColor }}>
-                                        {fav.wine.type}{fav.wine.vintage ? ` · ${fav.wine.vintage}` : ""}{fav.wine.region ? ` · ${fav.wine.region}` : ""}
+                                      <p className="text-sm mt-0.5 capitalize truncate" style={{ fontFamily: "var(--font-jost-family)", fontWeight: 500, color: typeColor }}>
+                                        {fav.wine.grape ? `${fav.wine.grape} · ` : ""}{fav.wine.region || fav.wine.type}
                                       </p>
                                     </div>
                                     <button
@@ -470,7 +463,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                         className="overflow-hidden border-t"
                         style={{ borderColor: "rgba(92, 10, 30, 0.1)" }}
                       >
-                        <div className="px-3 py-2 max-h-72 overflow-y-auto">
+                        <div className="py-2 max-h-72 overflow-y-auto" style={{ paddingLeft: "0.4rem", paddingRight: "1rem" }}>
                           <div className="space-y-0.5">
                             {BOTTLES.map((bottle) => {
                               const info = BOTTLE_INFO[bottle.name];
@@ -482,7 +475,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                   href={vivinoUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-2 px-2 py-2 rounded-lg transition-colors duration-200 group cursor-pointer no-underline"
+                                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors duration-200 group cursor-pointer no-underline"
                                   style={{ background: "transparent", textDecoration: "none" }}
                                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(92,10,30,0.06)")}
                                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
@@ -498,8 +491,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                     >
                                       {bottle.name}
                                     </p>
-                                    <p className="text-sm mt-0.5 capitalize" style={{ fontFamily: "var(--font-jost-family)", color: "rgba(26, 26, 26, 0.5)" }}>
-                                      {bottle.type}{info ? ` · ${info.grape}` : ""}{info ? ` · ${info.region}` : ""}
+                                    <p className="text-sm mt-0.5 capitalize truncate" style={{ fontFamily: "var(--font-jost-family)", color: "rgba(26, 26, 26, 0.5)" }}>
+                                      {info ? `${info.grape} · ${info.region}` : bottle.type}
                                     </p>
                                   </div>
                                   <svg
@@ -636,7 +629,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                       setSelectedFav(null);
                       onClose();
                     }}
-                    className="text-left text-xs text-gold/80 transition-colors duration-200 hover:text-gold py-1"
+                    className="text-left text-xs text-gold/80 transition-colors duration-200 hover:text-gold py-1 cursor-pointer"
                     style={{ fontFamily: "var(--font-jost-family)" }}
                   >
                     More about this wine
@@ -648,7 +641,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                         "_blank"
                       );
                     }}
-                    className="text-left text-xs text-gold/80 transition-colors duration-200 hover:text-gold py-1"
+                    className="text-left text-xs text-gold/80 transition-colors duration-200 hover:text-gold py-1 cursor-pointer"
                     style={{ fontFamily: "var(--font-jost-family)" }}
                   >
                     Buy this wine &rarr;

@@ -1,18 +1,23 @@
-name: Deploy to Azure Static Web Apps
+name: Deploy to Azure Container Apps
 
 on:
   push:
     branches: [main]
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  ACR_NAME: winiprodacr
+  RESOURCE_GROUP: wini-prod-rg
+  CONTAINER_APP: wini-prod-app
+  IMAGE_NAME: wini-app
 
 jobs:
-  build_and_deploy:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+  quality:
     runs-on: ubuntu-latest
-    name: Build and Deploy
-
+    name: Lint & Typecheck
     steps:
       - uses: actions/checkout@v4
 
@@ -27,6 +32,10 @@ jobs:
         run: npm ci
         working-directory: wini-app
 
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: wini-app
+
       - name: Type check
         run: npx tsc --noEmit
         working-directory: wini-app
@@ -35,32 +44,59 @@ jobs:
         run: npm run lint
         working-directory: wini-app
 
-      - name: Build
-        run: npm run build
-        working-directory: wini-app
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
-      - name: Deploy to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: upload
-          app_location: wini-app
-          output_location: .next
-
-  close_pull_request:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+  test:
     runs-on: ubuntu-latest
-    name: Close PR environment
-
+    name: Unit Tests
     steps:
-      - name: Close staging environment
-        uses: Azure/static-web-apps-deploy@v1
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          action: close
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: wini-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: wini-app
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: wini-app
+
+      - name: Run tests
+        run: npm test
+        working-directory: wini-app
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    name: Build & Deploy
+    needs: [quality, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE_TAG="${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          IMAGE_LATEST="${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest"
+          docker build -t "$IMAGE_TAG" -t "$IMAGE_LATEST" ./wini-app
+          docker push "$IMAGE_TAG"
+          docker push "$IMAGE_LATEST"
+
+      - name: Deploy to Container App
+        run: |
+          az containerapp update \
+            --name ${{ env.CONTAINER_APP }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image "${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}"
