@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Dish, Wine, WineInfo } from "@/lib/types";
 
@@ -39,17 +39,13 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
   const displayReason = pairingDetailedReason || pairingReason;
   const reducedMotion = useReducedMotion();
 
-  const isTouchDevice = useMemo(
-    () => typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0),
-    []
-  );
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const dragConstraintRef = useRef<HTMLDivElement>(null);
 
-  const dragConstraints = useMemo(() => ({
-    left: -(anchorStyle?.left ?? vw / 2),
-    right: vw - (anchorStyle?.left ?? 0) - panelWidth,
-    top: -(anchorStyle?.top ?? vh / 2),
-    bottom: vh - (anchorStyle?.top ?? 0) - 200,
-  }), [anchorStyle, vw, vh, panelWidth]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR-safe client detection
+    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
+  }, []);
 
   const [wineInfo, setWineInfo] = useState<WineInfo | null>(null);
   const [infoLoading, setInfoLoading] = useState(true);
@@ -83,6 +79,8 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
 
   return (
     <AnimatePresence>
+      {/* Constraint boundary for drag */}
+      <div ref={dragConstraintRef} className="fixed inset-0 z-50 pointer-events-none" />
       {/* No backdrop — panel floats on top, clicks pass through to wine cards */}
       <motion.div
         key="wine-detail-panel"
@@ -90,8 +88,8 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: anchorPosition ? -8 : 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        drag={isTouchDevice ? true : false}
-        dragConstraints={isTouchDevice ? dragConstraints : undefined}
+        drag={isTouchDevice || undefined}
+        dragConstraints={isTouchDevice ? dragConstraintRef : undefined}
         dragElastic={0.1}
         dragMomentum={false}
         whileDrag={{ scale: 1.02 }}

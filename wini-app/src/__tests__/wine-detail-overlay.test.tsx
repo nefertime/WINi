@@ -22,6 +22,21 @@ vi.mock("framer-motion", () => {
   };
 });
 
+// Mock matchMedia for touch detection
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
 const mockWine: Wine = {
   id: "w1",
   name: "Sancerre",
@@ -246,7 +261,8 @@ describe("WineDetailOverlay — desktop (1440x900)", () => {
         onClose={vi.fn()}
       />
     );
-    const backdrop = container.querySelector("[class*='fixed inset-0']");
+    // Drag constraint div exists but has pointer-events-none — not a real backdrop
+    const backdrop = container.querySelector("[class*='fixed inset-0']:not([class*='pointer-events-none'])");
     expect(backdrop).toBeNull();
   });
 

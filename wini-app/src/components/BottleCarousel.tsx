@@ -201,9 +201,10 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
                 onMouseEnter={() => setShowInfo(true)}
                 onMouseLeave={() => setShowInfo(false)}
                 style={{
-                  top: "20%",
-                  right: "clamp(-10rem, -14vw, -13rem)",
-                  width: "13rem",
+                  top: isTouch ? "8%" : "20%",
+                  ...(isTouch
+                    ? { right: "8%", width: "min(13rem, 80%)" }
+                    : { right: "clamp(-10rem, -14vw, -13rem)", width: "13rem" }),
                   background: "rgba(13, 13, 13, 0.92)",
                   backdropFilter: "blur(24px)",
                   WebkitBackdropFilter: "blur(24px)",

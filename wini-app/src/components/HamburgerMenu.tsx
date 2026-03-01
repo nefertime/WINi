@@ -147,9 +147,10 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
             transition={spillAnimation.transition}
             className="fixed z-50"
             style={{
-              top: "calc(1rem + clamp(2.75rem, 8vw, 4rem) + 0.5rem)",
-              left: "1rem",
+              top: "calc(max(1rem, env(safe-area-inset-top, 1rem)) + clamp(2.75rem, 8vw, 4rem) + 0.5rem)",
+              left: "max(1rem, env(safe-area-inset-left, 1rem))",
               width: "18rem",
+              touchAction: "manipulation",
               background: "#E8DCC8",
               borderRadius: "0.75rem",
               transformOrigin: "12% 0%",
@@ -174,9 +175,10 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                     }}
                     className="w-full py-2.5 text-left transition-colors duration-200 cursor-pointer"
                     style={{
-                      paddingLeft: "0.3rem",
+                      paddingLeft: "1rem",
                       paddingRight: "1rem",
                       background: activeSection === item.id ? "rgba(92, 10, 30, 0.08)" : "transparent",
+                      WebkitTapHighlightColor: "rgba(92, 10, 30, 0.15)",
                     }}
                   >
                     <span
