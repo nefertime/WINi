@@ -10,6 +10,7 @@ vi.mock("framer-motion", () => {
       initial, animate, exit, transition, whileHover,
       whileTap, whileFocus, whileDrag, whileInView,
       variants, layout, layoutId, drag, dragConstraints,
+      dragElastic, dragMomentum,
       ...rest
     } = props;
     return <div {...rest}>{children}</div>;
@@ -17,6 +18,7 @@ vi.mock("framer-motion", () => {
   return {
     motion: { div: Div, button: Div, p: Div },
     AnimatePresence: ({ children }: React.PropsWithChildren) => <div data-testid="animate-presence">{children}</div>,
+    useReducedMotion: () => false,
   };
 });
 
