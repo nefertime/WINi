@@ -6,6 +6,7 @@ import {
   waitForResults,
   submitSearch,
   cleanState,
+  setupAuthenticatedUser,
 } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
@@ -66,6 +67,7 @@ test.describe("Responsive — Tablet (820×1180)", () => {
   });
 
   test("favorite popup positions correctly beside menu", async ({ page }) => {
+    await setupAuthenticatedUser(page);
     await page.goto("/");
     await cleanState(page);
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
@@ -186,6 +188,7 @@ test.describe("Responsive — Tablet (820×1180)", () => {
   });
 
   test("menu text readability and compact wine format", async ({ page }) => {
+    await setupAuthenticatedUser(page);
     await page.goto("/");
     await cleanState(page);
     await page.goto("/");

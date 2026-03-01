@@ -6,6 +6,7 @@ import {
   waitForResults,
   submitSearch,
   cleanState,
+  setupAuthenticatedUser,
 } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
@@ -13,6 +14,7 @@ test.describe("Responsive — Mobile (393×852)", () => {
   test.use({ viewport: { width: 393, height: 852 } });
 
   test("favorite popup renders within viewport bounds", async ({ page }) => {
+    await setupAuthenticatedUser(page);
     await page.goto("/");
     await cleanState(page);
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
@@ -206,8 +208,8 @@ test.describe("Responsive — Mobile (393×852)", () => {
       expect(menuBounds.bottom).toBeLessThanOrEqual(852);
     }
 
-    // Close menu by clicking the backdrop
-    const backdrop = page.locator(".fixed.inset-0.z-40");
+    // Close menu by clicking the backdrop (z-index is inline via var(--z-backdrop), not a class)
+    const backdrop = page.locator(".fixed.inset-0").first();
     await backdrop.dispatchEvent("click");
     await page.waitForTimeout(350);
 
