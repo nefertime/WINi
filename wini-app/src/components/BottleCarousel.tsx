@@ -33,11 +33,33 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
       setIsTouch(window.matchMedia("(pointer: coarse)").matches);
     }, []);
 
+    const carouselRef = useRef<HTMLDivElement>(null);
+
     const cycle = useCallback(() => {
       setIndex((i) => (i + 1) % BOTTLES.length);
-      setShowInfo(false);
       lastCycleRef.current = Date.now();
     }, []);
+
+    const handleBottleClick = useCallback(() => {
+      if (!showInfo) {
+        setShowInfo(true);
+      } else {
+        cycle();
+        // showInfo stays true — shows next bottle's info
+      }
+    }, [showInfo, cycle]);
+
+    // Click-outside dismisses info popup
+    useEffect(() => {
+      if (!showInfo) return;
+      const handler = (e: MouseEvent) => {
+        if (carouselRef.current && !carouselRef.current.contains(e.target as Node)) {
+          setShowInfo(false);
+        }
+      };
+      document.addEventListener("mousedown", handler);
+      return () => document.removeEventListener("mousedown", handler);
+    }, [showInfo]);
 
     const handleHover = useCallback(() => {
       if (isCompact) return;
@@ -57,6 +79,7 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
 
     return (
       <motion.div
+        ref={carouselRef}
         className="relative flex justify-center items-center"
         animate={{
           height: containerHeight,
@@ -76,10 +99,10 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.3, ease }}
+              transition={{ duration: 0.18, ease }}
               className="absolute inset-0 flex items-center justify-center cursor-pointer"
-              onClick={cycle}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cycle(); }}}
+              onClick={handleBottleClick}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleBottleClick(); }}}
               onMouseEnter={() => { handleHover(); setIsPulsing(true); setShowInfo(true); }}
               onMouseLeave={() => { setIsPulsing(false); setShowInfo(false); }}
               role="button"
@@ -156,13 +179,14 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               onMouseLeave={() => setPromotedHover(false)}
               animate={{
                 opacity: isTouch
-                  ? promotedHover ? [0.4, 0.7, 0.4] : 0.4
-                  : promotedHover ? [0.5, 0.85, 0.5] : (showInfo || isPulsing) ? 0.85 : 0.3,
+                  ? promotedHover ? [0.65, 0.9, 0.65] : [0.5, 0.65, 0.5]
+                  : promotedHover ? [0.7, 0.95, 0.7] : [0.5, 0.7, 0.5],
               }}
-              transition={promotedHover
-                ? { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
-                : { duration: 0.3 }
-              }
+              transition={{
+                duration: promotedHover ? 1.6 : 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
               className="absolute z-[5] flex items-center justify-center"
               style={{
                 top: "28%",

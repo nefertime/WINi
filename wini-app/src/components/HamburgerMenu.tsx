@@ -557,7 +557,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                     strokeWidth="1.8"
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
-                                    className="shrink-0 opacity-0 group-hover:opacity-60 transition-opacity"
+                                    className="shrink-0 opacity-40 group-hover:opacity-70 transition-opacity"
                                     style={{ color: "#5C0A1E" }}
                                   >
                                     <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
