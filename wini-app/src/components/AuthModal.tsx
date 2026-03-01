@@ -420,8 +420,9 @@ function SubmitButton({ loading, children }: { loading: boolean; children: React
       className="w-full py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:brightness-110 active:scale-[0.97] disabled:opacity-50"
       style={{
         fontFamily: "var(--font-jost-family)",
-        background: "var(--gold)",
-        color: "var(--charcoal)",
+        background: "linear-gradient(135deg, var(--burgundy), var(--burgundy-light))",
+        color: "var(--cream-lightest)",
+        border: "1px solid rgba(122, 27, 61, 0.3)",
       }}
     >
       {loading ? "..." : children}
