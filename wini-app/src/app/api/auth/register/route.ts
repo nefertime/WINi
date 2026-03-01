@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, name } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { email, passwordHash },
+      data: { email, passwordHash, ...(name ? { name } : {}) },
     });
 
     return NextResponse.json(
