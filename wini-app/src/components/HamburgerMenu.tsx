@@ -5,6 +5,9 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import { Dish, Session, FavoriteWine, Wine } from "@/lib/types";
 import { useStorage } from "@/hooks/useStorage";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { BOTTLES, BOTTLE_INFO } from "@/lib/bottles";
 import AccountPanel from "@/components/AccountPanel";
 
@@ -63,19 +66,15 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
   const [selectedFav, setSelectedFav] = useState<{ fav: FavoriteWine; top: number } | null>(null);
   const [accountPanelOpen, setAccountPanelOpen] = useState(false);
   const savedSectionRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
-  const [isMobileMenu, setIsMobileMenu] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches
-  );
 
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 639px)");
-    const handler = (e: MediaQueryListEvent) => setIsMobileMenu(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+  useEscapeKey(isOpen, onClose);
+  useFocusTrap(menuRef, isOpen);
+  useScrollLock(isOpen);
 
   // Auto-expand Saved Wines when menu opens — sync state with prop change
+  // Note: `storage` excluded from deps — it's a new object every render (useStorage returns plain object)
   useEffect(() => {
     if (isOpen) {
       storage.getFavorites().then(setFavorites);
@@ -88,7 +87,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
       setSelectedFav(null);
       setAccountPanelOpen(false);
     }
-  }, [isOpen, initialSection, storage]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- storage is unstable ref, only re-run on isOpen/initialSection
+  }, [isOpen, initialSection]);
 
   const formatDate = (ts: number) => {
     const d = new Date(ts);
@@ -135,21 +135,25 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40"
+            className="fixed inset-0"
+            style={{ zIndex: "var(--z-backdrop)" }}
             onClick={onClose}
           />
 
           {/* Wine spill menu — cream puddle flowing from button */}
           <motion.div
+            ref={menuRef}
+            role="navigation"
+            aria-label="Main menu"
             initial={spillAnimation.initial}
             animate={spillAnimation.animate}
             exit={spillAnimation.exit}
             transition={spillAnimation.transition}
             className="fixed z-50"
             style={{
-              top: "calc(max(1rem, env(safe-area-inset-top, 1rem)) + clamp(2.75rem, 8vw, 4rem) + 0.5rem)",
-              left: "max(1rem, env(safe-area-inset-left, 1rem))",
-              width: "18rem",
+              top: "calc(max(1rem, var(--safe-top, 1rem)) + clamp(2.75rem, 8vw, 4rem) + 0.5rem)",
+              left: "max(1rem, var(--safe-left, 1rem))",
+              width: "var(--overlay-menu-w)",
               touchAction: "manipulation",
               background: "#E8DCC8",
               borderRadius: "0.75rem",
@@ -173,6 +177,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                       setSelectedFav(null);
                       setAccountPanelOpen(false);
                     }}
+                    aria-expanded={activeSection === item.id}
+                    aria-controls={`section-${item.id}`}
                     className="w-full py-2.5 text-left transition-colors duration-200 cursor-pointer"
                     style={{
                       paddingLeft: "1rem",
@@ -196,6 +202,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                   <AnimatePresence mode="wait">
                     {activeSection === "account" && item.id === "account" && (
                       <motion.div
+                        id="section-account"
                         key="account"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -306,6 +313,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
 
                     {activeSection === "pairings" && item.id === "pairings" && (
                       <motion.div
+                        id="section-pairings"
                         key="pairings"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -394,6 +402,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
 
                     {activeSection === "saved" && item.id === "saved" && (
                       <motion.div
+                        id="section-saved"
                         key="saved"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -498,6 +507,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
 
                     {activeSection === "promoted" && item.id === "promoted" && (
                       <motion.div
+                        id="section-promoted"
                         key="promoted"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -564,6 +574,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
 
                     {activeSection === "about" && item.id === "about" && (
                       <motion.div
+                        id="section-about"
                         key="about"
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -602,32 +613,26 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
             {selectedFav && activeSection === "saved" && (
               <motion.div
                 key="fav-popup"
-                initial={{ opacity: 0, x: isMobileMenu ? 0 : -6, y: isMobileMenu ? -6 : 0 }}
+                initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, x: 0, y: 0 }}
-                exit={{ opacity: 0, x: isMobileMenu ? 0 : -6, y: isMobileMenu ? -6 : 0 }}
+                exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.2, ease }}
-                className="fixed z-50 rounded-xl px-5 py-4"
-                style={isMobileMenu ? {
+                className="fixed z-50 rounded-xl px-5 py-4 fav-popup"
+                style={{
+                  /* Mobile-first: full width below menu */
+                  "--fav-popup-top": `${Math.max(60, selectedFav.top - 8)}px`,
                   width: "calc(100vw - 2rem)",
                   left: "1rem",
-                  top: "calc(1rem + clamp(2.75rem, 8vw, 4rem) + 0.5rem + 18rem)",
-                  maxHeight: "40vh",
+                  top: `calc(1rem + clamp(2.75rem, 8vw, 4rem) + 0.5rem + var(--overlay-menu-w))`,
+                  maxHeight: "var(--overlay-max-h)",
                   overflowY: "auto" as const,
-                  background: "rgba(13, 13, 13, 0.92)",
+                  overscrollBehavior: "contain",
+                  background: "var(--surface-glass)",
                   backdropFilter: "blur(24px)",
                   WebkitBackdropFilter: "blur(24px)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
-                } : {
-                  width: 220,
-                  left: "19.5rem",
-                  top: Math.max(60, selectedFav.top - 8),
-                  background: "rgba(13, 13, 13, 0.92)",
-                  backdropFilter: "blur(24px)",
-                  WebkitBackdropFilter: "blur(24px)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
-                }}
+                  border: "1px solid var(--surface-glass-border)",
+                  boxShadow: "var(--surface-glass-shadow)",
+                } as React.CSSProperties}
               >
                 {/* Paired with */}
                 {(selectedFav.fav.pairedDishData?.length || selectedFav.fav.pairedWith) && (

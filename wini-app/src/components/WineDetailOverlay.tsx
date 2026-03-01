@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Dish, Wine, WineInfo } from "@/lib/types";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type WineDetailOverlayProps = {
   wine: Wine;
@@ -20,27 +22,15 @@ function truncateDishName(name: string, maxLen = 28): string {
 }
 
 export default function WineDetailOverlay({ wine, pairingReason, pairingDetailedReason, pairingDishName, anchorPosition, onClose }: WineDetailOverlayProps) {
-  const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-  const isMobile = vw < 640;
-  const panelWidth = isMobile ? vw - 16 : Math.min(420, Math.max(320, vw * 0.3));
-  const panelMaxH = isMobile ? vh - 80 : Math.min(vh * 0.75, 500);
-
-  const anchorStyle = anchorPosition ? (() => {
-    if (isMobile) {
-      return { left: 8, top: 40, position: "fixed" as const };
-    }
-    const cardWidth = anchorPosition.right - anchorPosition.x;
-    const left = Math.max(8, Math.min(anchorPosition.x + cardWidth * 0.35, vw - panelWidth - 8));
-    const top = Math.max(8, Math.min(anchorPosition.y - 48, vh - panelMaxH - 16));
-    return { left, top, position: "fixed" as const };
-  })() : undefined;
-
   const displayReason = pairingDetailedReason || pairingReason;
   const reducedMotion = useReducedMotion();
 
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const dragConstraintRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEscapeKey(true, onClose);
+  useFocusTrap(overlayRef, true);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR-safe client detection
@@ -83,6 +73,10 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
       <div ref={dragConstraintRef} className="fixed inset-0 z-50 pointer-events-none" />
       {/* No backdrop — panel floats on top, clicks pass through to wine cards */}
       <motion.div
+        ref={overlayRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Wine details"
         key="wine-detail-panel"
         initial={{ opacity: 0, scale: 0.95, y: anchorPosition ? -8 : 0 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -96,12 +90,16 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
         className={`fixed z-50 rounded-xl overflow-hidden ${anchorPosition ? "" : "w-[90vw] max-w-lg left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"}`}
         style={{
           background: "linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
+          border: "1px solid var(--surface-glass-border)",
           boxShadow: "0 24px 80px rgba(0, 0, 0, 0.6), 0 8px 32px rgba(0, 0, 0, 0.4)",
-          maxHeight: panelMaxH,
-          width: anchorPosition ? panelWidth : undefined,
+          maxHeight: "var(--overlay-detail-max-h)",
+          width: anchorPosition ? "var(--overlay-detail-w)" : undefined,
           touchAction: isTouchDevice ? "none" : undefined,
-          ...(anchorStyle || {}),
+          ...(anchorPosition ? {
+            position: "fixed" as const,
+            left: `clamp(0.5rem, ${anchorPosition.x + (anchorPosition.right - anchorPosition.x) * 0.35}px, calc(100vw - var(--overlay-detail-w) - 0.5rem))`,
+            top: `clamp(0.5rem, ${anchorPosition.y - 48}px, calc(100dvh - var(--overlay-detail-max-h) - 1rem))`,
+          } : {}),
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -136,7 +134,7 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
         </button>
 
         {/* Content */}
-        <div className="overflow-y-auto" style={{ padding: isMobile ? "20px 20px 24px" : "28px 28px 32px", maxHeight: panelMaxH }}>
+        <div className="overflow-y-auto" style={{ padding: "var(--space-overlay-pad) var(--space-overlay-pad-x) calc(var(--space-overlay-pad) + 0.25rem)", maxHeight: "var(--overlay-detail-max-h)", overscrollBehavior: "contain" }}>
           {/* Wine type badge */}
           <div className="flex items-center gap-2 mb-3">
             <span

@@ -197,21 +197,20 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.95 }}
                 transition={{ duration: 0.2, ease }}
-                className="absolute z-20"
+                className={isTouch ? "fixed z-20" : "absolute z-20"}
                 onMouseEnter={() => setShowInfo(true)}
                 onMouseLeave={() => setShowInfo(false)}
                 style={{
-                  top: isTouch ? "8%" : "20%",
                   ...(isTouch
-                    ? { right: "8%", width: "min(13rem, 80%)" }
-                    : { right: "clamp(-10rem, -14vw, -13rem)", width: "13rem" }),
-                  background: "rgba(13, 13, 13, 0.92)",
+                    ? { top: "clamp(7rem, 18dvh, 10rem)", right: "0.75rem", width: "var(--overlay-info-w)" }
+                    : { top: "20%", right: "clamp(-10rem, -14vw, -13rem)", width: "var(--overlay-info-w)" }),
+                  background: "var(--surface-glass)",
                   backdropFilter: "blur(24px)",
                   WebkitBackdropFilter: "blur(24px)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  border: "1px solid var(--surface-glass-border)",
                   borderRadius: "0.75rem",
                   padding: "0.875rem",
-                  boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
+                  boxShadow: "var(--surface-glass-shadow)",
                 }}
               >
                 <h4

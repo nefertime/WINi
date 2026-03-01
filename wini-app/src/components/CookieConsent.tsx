@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { hasConsentCookie, setConsentPreferences } from "@/lib/cookies";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -12,15 +14,6 @@ export default function CookieConsent() {
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
   const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (hasConsentCookie()) return;
-    const timer = setTimeout(() => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate: delayed mount check
-      setVisible(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const accept = (all: boolean) => {
     setConsentPreferences({
@@ -42,24 +35,43 @@ export default function CookieConsent() {
     setVisible(false);
   };
 
+  const consentRef = useRef<HTMLDivElement>(null);
+
+  useEscapeKey(visible, reject);
+  useFocusTrap(consentRef, visible);
+
+  useEffect(() => {
+    if (hasConsentCookie()) return;
+    const timer = setTimeout(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate: delayed mount check
+      setVisible(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
+          ref={consentRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Cookie preferences"
           initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 60 }}
           transition={{ duration: 0.5, ease }}
-          className="fixed inset-x-0 z-[60] flex justify-center px-4"
-          style={{ bottom: "clamp(14rem, 35vh, 22rem)" }}
+          className="fixed inset-x-0 flex justify-center px-4"
+          style={{ zIndex: "var(--z-toast)", bottom: "clamp(14rem, 35dvh, 22rem)" }}
         >
           <div
-            className="w-full max-w-xl rounded-2xl px-10 py-6"
+            className="w-full rounded-2xl px-10 py-6"
             style={{
-              background: "rgba(13, 13, 13, 0.92)",
+              maxWidth: "var(--overlay-cookie-w)",
+              background: "var(--surface-glass)",
               backdropFilter: "blur(24px)",
               WebkitBackdropFilter: "blur(24px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              border: "1px solid var(--surface-glass-border)",
               boxShadow: "0 -8px 40px rgba(0, 0, 0, 0.4)",
             }}
           >
@@ -80,6 +92,7 @@ export default function CookieConsent() {
             <AnimatePresence>
               {customizing && (
                 <motion.div
+                  id="cookie-toggles"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
@@ -122,6 +135,8 @@ export default function CookieConsent() {
                 </button>
                 <button
                   onClick={() => setCustomizing(true)}
+                  aria-expanded={customizing}
+                  aria-controls="cookie-toggles"
                   className="text-sm transition-colors duration-200 shrink-0"
                   style={{
                     fontFamily: "var(--font-jost-family)",

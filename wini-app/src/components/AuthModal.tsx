@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { signIn } from "next-auth/react";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type AuthView = "signin" | "signup" | "forgot";
 
@@ -24,6 +26,10 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
   const [loading, setLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const reducedMotion = useReducedMotion();
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(modalRef, isOpen);
+  useScrollLock(isOpen);
 
   const resetForm = () => {
     setName("");
@@ -134,26 +140,34 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[55]"
-            style={{ background: "rgba(0, 0, 0, 0.6)" }}
+            className="fixed inset-0"
+            style={{ zIndex: "var(--z-auth-backdrop)", background: "rgba(0, 0, 0, 0.6)" }}
             onClick={onClose}
           />
 
           {/* Modal */}
           <motion.div
+            ref={modalRef}
             initial={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={reducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.35, ease }}
-            className="fixed inset-0 z-[56] flex items-center justify-center px-4"
+            className="fixed inset-0 flex items-center justify-center px-4"
+            style={{ zIndex: "var(--z-auth-modal)", paddingTop: "var(--safe-top)", paddingBottom: "var(--safe-bottom)" }}
             onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
             onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
           >
             <div
-              className="w-full max-w-sm rounded-2xl px-6 py-8 relative"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Authentication"
+              className="rounded-2xl px-6 py-8 relative overflow-y-auto"
               style={{
+                width: "var(--overlay-modal-w)",
+                maxHeight: "var(--overlay-max-h)",
+                overscrollBehavior: "contain",
                 background: "linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                border: "1px solid var(--surface-glass-border)",
                 boxShadow: "0 24px 80px rgba(0, 0, 0, 0.6)",
               }}
             >
@@ -190,7 +204,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
                       <InputField label="Email" type="email" value={email} onChange={setEmail} />
                       <InputField label="Password" type="password" value={password} onChange={setPassword} />
 
-                      {error && <p className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>{error}</p>}
+                      {error && <p role="alert" aria-live="assertive" className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>{error}</p>}
 
                       <button
                         type="button"
@@ -251,7 +265,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
                       <InputField label="Password" type="password" value={password} onChange={setPassword} />
                       <InputField label="Confirm Password" type="password" value={confirmPassword} onChange={setConfirmPassword} />
 
-                      {error && <p className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>{error}</p>}
+                      {error && <p role="alert" aria-live="assertive" className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>{error}</p>}
 
                       <SubmitButton loading={loading}>Create Account</SubmitButton>
                     </form>
@@ -301,7 +315,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
                     ) : (
                       <form onSubmit={handleForgot} className="space-y-4">
                         <InputField label="Email" type="email" value={email} onChange={setEmail} />
-                        {error && <p className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>{error}</p>}
+                        {error && <p role="alert" aria-live="assertive" className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>{error}</p>}
                         <SubmitButton loading={loading}>Send Reset Link</SubmitButton>
                       </form>
                     )}
