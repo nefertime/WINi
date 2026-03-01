@@ -21,9 +21,11 @@ test.describe("Navigation", () => {
     await page.waitForTimeout(1200);
 
     // Should be back on home screen — search bar with placeholder visible
-    // Desktop shows "Upload" vs mobile "Take a photo"
-    const placeholder = page.locator("text=/photo of food & wine menu/");
-    await expect(placeholder).toBeVisible({ timeout: 5000 });
+    const viewport = page.viewportSize();
+    const selector = viewport && viewport.width >= 1024
+      ? ".search-placeholder-desktop"
+      : ".search-placeholder-mobile";
+    await expect(page.locator(selector)).toBeVisible({ timeout: 5000 });
   });
 
   test("clean button removes photos on home", async ({ page }) => {
