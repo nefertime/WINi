@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Wine, Pairing } from "@/lib/types";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 
 type WinePopupProps = {
   wine: Wine;
@@ -11,6 +12,8 @@ type WinePopupProps = {
   onAboutWine: () => void;
   onClose?: () => void;
 };
+
+const noop = () => {};
 
 const typeColors: Record<string, string> = {
   red: "#9B2335",
@@ -25,15 +28,12 @@ export default function WinePopup({
   position,
   onMorePairing,
   onAboutWine,
+  onClose,
 }: WinePopupProps) {
-  const vw = typeof window !== "undefined" ? window.innerWidth : 400;
-  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-  const popupWidth = Math.min(400, Math.max(280, vw * 0.28));
+  useEscapeKey(true, onClose ?? noop);
 
   // Anchor popup shifted right so ~1/4 of underlying wine card is visible
   const cardWidth = position.right - position.x;
-  const left = Math.max(8, Math.min(position.x + cardWidth * 0.25, vw - popupWidth - 8));
-  const top = Math.max(8, Math.min(position.y - 8, vh - 260));
 
   return (
     <motion.div
@@ -43,15 +43,15 @@ export default function WinePopup({
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       className="fixed z-50 rounded-xl"
       style={{
-        width: popupWidth,
-        left,
-        top,
+        width: "var(--overlay-popup-w)",
+        left: `clamp(0.5rem, ${position.x + cardWidth * 0.25}px, calc(100vw - var(--overlay-popup-w) - 0.5rem))`,
+        top: `clamp(0.5rem, ${position.y - 8}px, calc(100dvh - 16.25rem))`,
         padding: "clamp(0.75rem, 1.1vw, 1.1rem) clamp(1rem, 1.4vw, 1.4rem)",
-        background: "rgba(13, 13, 13, 0.92)",
+        background: "var(--surface-glass)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
-        boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
+        border: "1px solid var(--surface-glass-border)",
+        boxShadow: "var(--surface-glass-shadow)",
       }}
     >
       {/* Pairing reason with type dot */}

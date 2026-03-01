@@ -66,11 +66,6 @@ beforeEach(() => {
   });
 });
 
-function setViewport(width: number, height: number) {
-  Object.defineProperty(window, "innerWidth", { value: width, writable: true, configurable: true });
-  Object.defineProperty(window, "innerHeight", { value: height, writable: true, configurable: true });
-}
-
 // Helper: get the first overlay panel to scope queries (React 19 may double-render)
 function getOverlayPanel(container: HTMLElement) {
   return container.querySelector("[class*='rounded-xl']") as HTMLElement;
@@ -157,10 +152,8 @@ describe("WineDetailOverlay", () => {
   });
 });
 
-describe("WineDetailOverlay — mobile (390x844)", () => {
-  beforeEach(() => setViewport(390, 844));
-
-  it("uses mobile-width panel (vw - 16 = 374px)", () => {
+describe("WineDetailOverlay — responsive (CSS tokens)", () => {
+  it("uses CSS token for panel width when anchored", () => {
     const { container } = render(
       <WineDetailOverlay
         wine={mockWine}
@@ -169,10 +162,10 @@ describe("WineDetailOverlay — mobile (390x844)", () => {
       />
     );
     const panel = getOverlayPanel(container);
-    expect(panel.style.width).toBe("374px");
+    expect(panel.style.width).toBe("var(--overlay-detail-w)");
   });
 
-  it("positions at top:40 left:8 on mobile", () => {
+  it("uses CSS token for max height", () => {
     const { container } = render(
       <WineDetailOverlay
         wine={mockWine}
@@ -181,33 +174,10 @@ describe("WineDetailOverlay — mobile (390x844)", () => {
       />
     );
     const panel = getOverlayPanel(container);
-    expect(panel.style.top).toBe("40px");
-    expect(panel.style.left).toBe("8px");
+    expect(panel.style.maxHeight).toBe("var(--overlay-detail-max-h)");
   });
 
-  it("uses tighter padding on mobile", () => {
-    const { container } = render(<WineDetailOverlay wine={mockWine} onClose={vi.fn()} />);
-    const scrollDiv = container.querySelector("[class*='overflow-y-auto']") as HTMLElement;
-    expect(scrollDiv.style.padding).toBe("20px 20px 24px");
-  });
-
-  it("sets max height to vh - 80 = 764px", () => {
-    const { container } = render(
-      <WineDetailOverlay
-        wine={mockWine}
-        anchorPosition={{ x: 50, y: 200, right: 350 }}
-        onClose={vi.fn()}
-      />
-    );
-    const panel = getOverlayPanel(container);
-    expect(panel.style.maxHeight).toBe("764px");
-  });
-});
-
-describe("WineDetailOverlay — iPad (820x1180)", () => {
-  beforeEach(() => setViewport(820, 1180));
-
-  it("uses desktop-style panel width (320px)", () => {
+  it("uses CSS clamp for anchor positioning", () => {
     const { container } = render(
       <WineDetailOverlay
         wine={mockWine}
@@ -216,41 +186,14 @@ describe("WineDetailOverlay — iPad (820x1180)", () => {
       />
     );
     const panel = getOverlayPanel(container);
-    expect(panel.style.width).toBe("320px");
+    expect(panel.style.left).toContain("clamp");
+    expect(panel.style.top).toContain("clamp");
   });
 
-  it("uses desktop padding", () => {
+  it("uses CSS token for content padding", () => {
     const { container } = render(<WineDetailOverlay wine={mockWine} onClose={vi.fn()} />);
     const scrollDiv = container.querySelector("[class*='overflow-y-auto']") as HTMLElement;
-    expect(scrollDiv.style.padding).toBe("28px 28px 32px");
-  });
-
-  it("caps max height at 500px", () => {
-    const { container } = render(
-      <WineDetailOverlay
-        wine={mockWine}
-        anchorPosition={{ x: 400, y: 300, right: 700 }}
-        onClose={vi.fn()}
-      />
-    );
-    const panel = getOverlayPanel(container);
-    expect(panel.style.maxHeight).toBe("500px");
-  });
-});
-
-describe("WineDetailOverlay — desktop (1440x900)", () => {
-  beforeEach(() => setViewport(1440, 900));
-
-  it("uses max panel width of 420px", () => {
-    const { container } = render(
-      <WineDetailOverlay
-        wine={mockWine}
-        anchorPosition={{ x: 800, y: 200, right: 1100 }}
-        onClose={vi.fn()}
-      />
-    );
-    const panel = getOverlayPanel(container);
-    expect(panel.style.width).toBe("420px");
+    expect(scrollDiv.style.padding).toContain("var(--space-overlay-pad");
   });
 
   it("has no backdrop element — panel floats directly", () => {
@@ -261,7 +204,6 @@ describe("WineDetailOverlay — desktop (1440x900)", () => {
         onClose={vi.fn()}
       />
     );
-    // Drag constraint div exists but has pointer-events-none — not a real backdrop
     const backdrop = container.querySelector("[class*='fixed inset-0']:not([class*='pointer-events-none'])");
     expect(backdrop).toBeNull();
   });

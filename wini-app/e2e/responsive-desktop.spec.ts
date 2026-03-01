@@ -6,6 +6,7 @@ import {
   waitForResults,
   submitSearch,
   cleanState,
+  setupAuthenticatedUser,
 } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
@@ -49,9 +50,8 @@ test.describe("Responsive — Desktop (1440×900)", () => {
     await cleanState(page);
     await page.goto("/");
 
-    // On home screen, floating hints should be visible
-    const hint = page.locator("text=/photo|upload/i").first();
-    await expect(hint).toBeVisible();
+    // On home screen, the desktop placeholder should be visible
+    await expect(page.locator(".search-placeholder-desktop")).toBeVisible();
   });
 
   test("bottle carousel hover info popup works", async ({ page }) => {
@@ -79,6 +79,7 @@ test.describe("Responsive — Desktop (1440×900)", () => {
   test("HamburgerMenu favorite popup positions to the right", async ({
     page,
   }) => {
+    await setupAuthenticatedUser(page);
     await page.goto("/");
     await cleanState(page);
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);

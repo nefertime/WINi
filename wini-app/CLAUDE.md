@@ -111,14 +111,14 @@ Pairings: `{ dish_id, wine_id, score: 0-1, reason, detailed_reason }`
 - **Cookie consent**: `wini_cookie_consent` cookie, 1-year expiry, 3-second delay, GDPR 3-category toggles
 - **Security headers**: X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy (in `next.config.ts`)
 - **Storage strategy**: Unauthenticated → localStorage (existing), Authenticated → server API routes
-- **`useStorage` hook** (`src/hooks/useStorage.ts`): Auth-aware wrapper — not yet wired to all components
+- **`useStorage` hook** (`src/hooks/useStorage.ts`): Auth-aware wrapper — wired to all components. Guest functions are no-ops (no localStorage writes)
 - **Data migration**: Auto-migrates localStorage → server on first login via `/api/auth/migrate`
 
 ## Known Issues
 - No `tailwind.config.ts` file (using v4 inline `@theme` — valid but non-standard)
 - OAuth providers use placeholder credentials — replace in `.env.local` for real OAuth
 - Forgot password is placeholder — needs email sending service (SendGrid, Resend, etc.)
-- `useStorage` hook created but existing components still import localStorage directly
+- `useStorage` hook fully wired; `AuthPrompt` component shows sign-in toast for guest persistence actions
 - No rate limiting on auth endpoints (brute force risk)
 - No email format validation in registration endpoint
 - User enumeration via distinct 409/400 error responses in registration

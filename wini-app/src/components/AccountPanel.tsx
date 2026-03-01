@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 type AccountPanelProps = {
   isOpen: boolean;
@@ -14,6 +16,11 @@ const ease = [0.16, 1, 0.3, 1] as const;
 export default function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
   const { data: session, update } = useSession();
   const reducedMotion = useReducedMotion();
+
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEscapeKey(isOpen, onClose);
+  useFocusTrap(panelRef, isOpen);
 
   const [name, setName] = useState(session?.user?.name ?? "");
   const [age, setAge] = useState("");
@@ -97,6 +104,10 @@ export default function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edit profile"
           key="account-panel"
           initial={reducedMotion ? { opacity: 0 } : { opacity: 0, x: -6 }}
           animate={{ opacity: 1, x: 0 }}
@@ -104,15 +115,16 @@ export default function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
           transition={{ duration: 0.25, ease }}
           className="fixed z-50 rounded-xl px-5 py-5 overflow-y-auto"
           style={{
-            width: 260,
-            maxHeight: "calc(100dvh - 8rem)",
-            left: "19.5rem",
+            width: "var(--overlay-panel-w)",
+            maxHeight: "var(--overlay-panel-max-h)",
+            left: "calc(var(--overlay-menu-w) + 1.5rem)",
             top: "calc(1rem + clamp(2.75rem, 8vw, 4rem) + 0.5rem)",
-            background: "rgba(13, 13, 13, 0.92)",
+            overscrollBehavior: "contain",
+            background: "var(--surface-glass)",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            boxShadow: "0 12px 40px rgba(0, 0, 0, 0.5)",
+            border: "1px solid var(--surface-glass-border)",
+            boxShadow: "var(--surface-glass-shadow)",
           }}
         >
           <h3
@@ -274,12 +286,12 @@ export default function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
 
           {/* Messages */}
           {message && (
-            <p className="text-xs text-center mb-3" style={{ fontFamily: "var(--font-jost-family)", color: "var(--gold)" }}>
+            <p role="status" aria-live="polite" className="text-xs text-center mb-3" style={{ fontFamily: "var(--font-jost-family)", color: "var(--gold)" }}>
               {message}
             </p>
           )}
           {error && (
-            <p className="text-xs text-center mb-3" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>
+            <p role="alert" aria-live="assertive" className="text-xs text-center mb-3" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>
               {error}
             </p>
           )}

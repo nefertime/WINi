@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch, savePairing, dismissCookieConsent } from "./helpers";
+import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch, savePairing, dismissCookieConsent, setupAuthenticatedUser } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Save Pairing", () => {
   test.beforeEach(async ({ page }) => {
+    await setupAuthenticatedUser(page);
     await dismissCookieConsent(page);
     await page.goto("/");
     await page.evaluate(() => {

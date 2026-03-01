@@ -48,8 +48,9 @@ function LightboxOverlay({ previews, expandedPreview, onClose, onNavigate }: Lig
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center"
+      className="fixed inset-0 flex items-center justify-center"
       style={{
+        zIndex: "var(--z-lightbox)",
         background: "rgba(13, 11, 14, 0.7)",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
@@ -157,18 +158,6 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
   const [previews, setPreviews] = useState<string[]>(() => initialPreviews ?? []);
   const fileRef = useRef<HTMLInputElement>(null);
   const [expandedPreview, setExpandedPreview] = useState<number | null>(null);
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const resolvedPlaceholder = placeholder ?? (isDesktop ? "Upload a photo of food & wine menu" : "Take a photo of food & wine menu");
 
   const isBottom = position === "bottom";
 
@@ -496,7 +485,12 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
                   textOverflow: "ellipsis",
                 }}
               >
-                {resolvedPlaceholder}
+                {placeholder ?? (
+                  <>
+                    <span className="search-placeholder-mobile">Take a photo of food &amp; wine menu</span>
+                    <span className="search-placeholder-desktop">Upload a photo of food &amp; wine menu</span>
+                  </>
+                )}
               </span>
             )}
             <input

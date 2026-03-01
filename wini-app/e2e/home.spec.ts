@@ -30,8 +30,11 @@ test.describe("Home page", () => {
   });
 
   test("shows placeholder text", async ({ page }) => {
-    const placeholder = page.locator("text=/photo of food & wine menu/");
-    await expect(placeholder).toBeVisible();
+    const viewport = page.viewportSize();
+    const selector = viewport && viewport.width >= 1024
+      ? ".search-placeholder-desktop"
+      : ".search-placeholder-mobile";
+    await expect(page.locator(selector)).toBeVisible();
   });
 
   test("shows floating hints", async ({ page }) => {

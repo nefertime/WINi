@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import type { AnalyzeResponse } from "../src/lib/types";
+import type { AnalyzeResponse, FavoriteWine, Session } from "../src/lib/types";
 import path from "path";
 
 const TEST_MENU_DIR = path.resolve(__dirname, "../../test-data/menus");
@@ -124,4 +124,84 @@ export async function submitSearch(page: Page) {
 export async function savePairing(page: Page) {
   await page.locator('[aria-label="Save this pairing"]').click();
   await expect(page.locator('[aria-label="Remove saved pairing"]')).toBeVisible();
+}
+
+// Mock Auth.js session + storage API routes so useStorage treats tests as authenticated.
+// Must be called BEFORE page.goto("/") so SessionProvider fetches the mocked session on mount.
+export async function setupAuthenticatedUser(page: Page) {
+  const favorites: FavoriteWine[] = [];
+  const sessions: Session[] = [];
+
+  // Auth.js session — makes useSession() return status: "authenticated"
+  await page.route("**/api/auth/session", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        user: { id: "test-user-1", name: "Test User", email: "test@example.com" },
+        expires: new Date(Date.now() + 86400000).toISOString(),
+      }),
+    });
+  });
+
+  // Favorites CRUD — in-memory array scoped to this test
+  await page.route("**/api/user/favorites", async (route) => {
+    const method = route.request().method();
+
+    if (method === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(favorites),
+      });
+    } else if (method === "POST") {
+      const body = JSON.parse((await route.request().postData()) || "{}");
+      const key = JSON.stringify(body.wine);
+      // Dedup by wine JSON (matches real Prisma route logic)
+      if (!favorites.some((f) => JSON.stringify(f.wine) === key)) {
+        favorites.push({
+          id: `fav-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          wine: body.wine,
+          savedAt: Date.now(),
+          pairedWith: body.pairedWith,
+          pairedDishData: body.pairedDishData,
+        });
+      }
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    } else if (method === "DELETE") {
+      const body = JSON.parse((await route.request().postData()) || "{}");
+      const key = JSON.stringify(body.wine);
+      const idx = favorites.findIndex((f) => JSON.stringify(f.wine) === key);
+      if (idx !== -1) favorites.splice(idx, 1);
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    } else {
+      await route.continue();
+    }
+  });
+
+  // Pairings (sessions) CRUD — in-memory array scoped to this test
+  await page.route("**/api/user/pairings", async (route) => {
+    const method = route.request().method();
+
+    if (method === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(sessions),
+      });
+    } else if (method === "POST") {
+      const body: Session = JSON.parse((await route.request().postData()) || "{}");
+      const idx = sessions.findIndex((s) => s.id === body.id);
+      if (idx !== -1) sessions[idx] = body;
+      else sessions.push(body);
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    } else if (method === "DELETE") {
+      const body = JSON.parse((await route.request().postData()) || "{}");
+      const idx = sessions.findIndex((s) => s.id === body.id);
+      if (idx !== -1) sessions.splice(idx, 1);
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    } else {
+      await route.continue();
+    }
+  });
 }

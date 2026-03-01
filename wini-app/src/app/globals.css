@@ -18,6 +18,49 @@
 
   --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Z-index scale --- */
+  --z-content: 10;
+  --z-info-popup: 20;
+  --z-canvas: 30;
+  --z-search-bar: 40;
+  --z-backdrop: 40;
+  --z-overlay: 50;
+  --z-nav-button: 52;
+  --z-auth-backdrop: 55;
+  --z-auth-modal: 56;
+  --z-toast: 60;
+  --z-lightbox: 100;
+
+  /* --- Safe-area aliases --- */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* --- Overlay widths (fluid, no JS needed) --- */
+  --overlay-menu-w: clamp(16rem, 70vw, 18rem);
+  --overlay-panel-w: clamp(15rem, 65vw, 16.25rem);
+  --overlay-detail-w: clamp(18rem, 85vw, 26.25rem);
+  --overlay-popup-w: clamp(17.5rem, 70vw, 25rem);
+  --overlay-modal-w: min(24rem, calc(100vw - 2rem));
+  --overlay-cookie-w: min(36rem, calc(100vw - 2rem));
+  --overlay-info-w: clamp(10rem, 35vw, 13rem);
+
+  /* --- Overlay max heights (dvh for iOS correctness) --- */
+  --overlay-max-h: min(80dvh, 40rem);
+  --overlay-detail-max-h: calc(100dvh - 5rem);
+  --overlay-panel-max-h: calc(100dvh - 8rem);
+
+  /* --- Spacing --- */
+  --space-overlay-pad: clamp(1rem, 3vw, 1.75rem);
+  --space-overlay-pad-x: clamp(1.25rem, 4vw, 1.75rem);
+  --space-edge: max(0.5rem, env(safe-area-inset-left, 0.5rem));
+
+  /* --- Shared glassmorphic surface --- */
+  --surface-glass: rgba(13, 13, 13, 0.92);
+  --surface-glass-border: rgba(255, 255, 255, 0.08);
+  --surface-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {
@@ -51,11 +94,15 @@ html, body {
 
 html {
   background: var(--charcoal);
-  font-size: 16px;
+  font-size: clamp(16px, 0.95rem + 0.25vw, 17.5px);
 }
 
-@media (min-width: 1024px) {
-  html { font-size: 17.5px; }
+/* Tablet+ overlay overrides */
+@media (min-width: 768px) {
+  :root {
+    --overlay-detail-w: clamp(20rem, 30vw, 26.25rem);
+    --overlay-detail-max-h: min(75dvh, 31.25rem);
+  }
 }
 
 body {
@@ -76,6 +123,23 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--burgundy-light);
   border-radius: 2px;
+}
+
+/* SearchBar placeholder — mobile "Take a photo" / desktop "Upload a photo" */
+.search-placeholder-desktop { display: none; }
+.search-placeholder-mobile { display: inline; }
+@media (min-width: 1024px) {
+  .search-placeholder-desktop { display: inline; }
+  .search-placeholder-mobile { display: none; }
+}
+
+/* Fav popup — tablet+ repositions beside menu instead of below */
+@media (min-width: 480px) {
+  .fav-popup {
+    width: var(--overlay-panel-w) !important;
+    left: calc(var(--overlay-menu-w) + 1.5rem) !important;
+    top: var(--fav-popup-top, 60px) !important;
+  }
 }
 
 /* Reduced motion */

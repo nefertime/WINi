@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch, cleanState } from "./helpers";
+import { mockAnalyzeAPI, mockWineInfoAPI, uploadMenu, waitForResults, submitSearch, cleanState, setupAuthenticatedUser } from "./helpers";
 import { WINO_MENU_RESPONSE } from "./fixtures/mock-data";
 
 test.describe("Favorites (Task 5)", () => {
   test.beforeEach(async ({ page }) => {
+    await setupAuthenticatedUser(page);
     await page.goto("/");
     await cleanState(page);
 
