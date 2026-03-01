@@ -527,10 +527,10 @@ export default function Home() {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ delay: 0.3, duration: 0.25, ease }}
               onClick={handleBack}
-              className="fixed z-50 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95"
+              className="fixed z-[52] rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95"
               style={{
-                top: "1rem",
-                left: "calc(1rem + clamp(2.75rem, 8vw, 4rem) + 0.5rem)",
+                top: "max(1rem, env(safe-area-inset-top, 1rem))",
+                left: "calc(max(1rem, env(safe-area-inset-left, 1rem)) + clamp(2.75rem, 8vw, 4rem) + 0.5rem)",
                 width: "clamp(2.75rem, 8vw, 4rem)",
                 height: "clamp(2.75rem, 8vw, 4rem)",
                 background: "#1A1A1A",

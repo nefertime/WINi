@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Dish, Wine, WineInfo } from "@/lib/types";
 
 type WineDetailOverlayProps = {
@@ -31,12 +31,25 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
       return { left: 8, top: 40, position: "fixed" as const };
     }
     const cardWidth = anchorPosition.right - anchorPosition.x;
-    const left = Math.max(8, Math.min(anchorPosition.x + cardWidth * 0.15, vw - panelWidth - 8));
-    const top = Math.max(8, Math.min(anchorPosition.y - 16, vh - panelMaxH - 16));
+    const left = Math.max(8, Math.min(anchorPosition.x + cardWidth * 0.35, vw - panelWidth - 8));
+    const top = Math.max(8, Math.min(anchorPosition.y - 48, vh - panelMaxH - 16));
     return { left, top, position: "fixed" as const };
   })() : undefined;
 
   const displayReason = pairingDetailedReason || pairingReason;
+  const reducedMotion = useReducedMotion();
+
+  const isTouchDevice = useMemo(
+    () => typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0),
+    []
+  );
+
+  const dragConstraints = useMemo(() => ({
+    left: -(anchorStyle?.left ?? vw / 2),
+    right: vw - (anchorStyle?.left ?? 0) - panelWidth,
+    top: -(anchorStyle?.top ?? vh / 2),
+    bottom: vh - (anchorStyle?.top ?? 0) - 200,
+  }), [anchorStyle, vw, vh, panelWidth]);
 
   const [wineInfo, setWineInfo] = useState<WineInfo | null>(null);
   const [infoLoading, setInfoLoading] = useState(true);
@@ -77,6 +90,11 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: anchorPosition ? -8 : 0 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        drag={isTouchDevice ? true : false}
+        dragConstraints={isTouchDevice ? dragConstraints : undefined}
+        dragElastic={0.1}
+        dragMomentum={false}
+        whileDrag={{ scale: 1.02 }}
         className={`fixed z-50 rounded-xl overflow-hidden ${anchorPosition ? "" : "w-[90vw] max-w-lg left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"}`}
         style={{
           background: "linear-gradient(180deg, #1A1A1A 0%, #0D0D0D 100%)",
@@ -84,10 +102,28 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
           boxShadow: "0 24px 80px rgba(0, 0, 0, 0.6), 0 8px 32px rgba(0, 0, 0, 0.4)",
           maxHeight: panelMaxH,
           width: anchorPosition ? panelWidth : undefined,
+          touchAction: isTouchDevice ? "none" : undefined,
           ...(anchorStyle || {}),
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag handle — touch devices only */}
+        {isTouchDevice && (
+          <div className="flex justify-center pt-2 pb-0">
+            <div
+              className="rounded-full"
+              style={{
+                width: 32,
+                height: 4,
+                background: "rgba(255, 255, 255, 0.15)",
+              }}
+            />
+          </div>
+        )}
+
+        {/* Drag hint — first-time touch users */}
+        {isTouchDevice && <DragHint reducedMotion={!!reducedMotion} />}
+
         {/* Close button */}
         <button
           onClick={onClose}
@@ -240,5 +276,53 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
         </div>
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+function DragHint({ reducedMotion }: { reducedMotion: boolean }) {
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (localStorage.getItem("wini_drag_hint_seen")) return false;
+    localStorage.setItem("wini_drag_hint_seen", "1");
+    return true;
+  });
+
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => setVisible(false), 2500);
+    return () => clearTimeout(timer);
+  }, [visible]);
+
+  if (!visible) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+      style={{ background: "rgba(0, 0, 0, 0.4)", borderRadius: "inherit" }}
+    >
+      <div className="flex items-center gap-2">
+        <motion.div
+          animate={reducedMotion ? {} : { x: [0, 24, 0] }}
+          transition={{ duration: 1.2, repeat: 1, ease: "easeInOut" }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(250, 246, 240, 0.7)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 11V6a2 2 0 00-2-2 2 2 0 00-2 2v0" />
+            <path d="M14 10V4a2 2 0 00-2-2 2 2 0 00-2 2v6" />
+            <path d="M10 10.5V6a2 2 0 00-2-2 2 2 0 00-2 2v8" />
+            <path d="M18 8a2 2 0 012 2v7a5 5 0 01-5 5H9a5 5 0 01-5-5v-1a2 2 0 012-2h0" />
+          </svg>
+        </motion.div>
+        <span
+          className="text-xs uppercase tracking-widest"
+          style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.6)" }}
+        >
+          Drag to move
+        </span>
+      </div>
+    </motion.div>
   );
 }

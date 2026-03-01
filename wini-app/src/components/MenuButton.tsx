@@ -9,12 +9,15 @@ export default function MenuButton({ onClick, isOpen }: MenuButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="fixed top-4 left-4 z-50 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 overflow-hidden cursor-pointer"
+      className="fixed z-[52] rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
       style={{
+        top: "max(1rem, env(safe-area-inset-top, 1rem))",
+        left: "max(1rem, env(safe-area-inset-left, 1rem))",
         width: "clamp(2.75rem, 8vw, 4rem)",
         height: "clamp(2.75rem, 8vw, 4rem)",
         background: "#1A1A1A",
         boxShadow: "0 4px 16px rgba(0, 0, 0, 0.3)",
+        WebkitTapHighlightColor: "transparent",
       }}
       aria-label={isOpen ? "Close menu" : "Open menu"}
     >
