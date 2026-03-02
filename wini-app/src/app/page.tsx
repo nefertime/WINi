@@ -47,14 +47,16 @@ export default function Home() {
   const [authPromptMessage, setAuthPromptMessage] = useState("");
   const storage = useStorage();
 
-  // Remove splash screen after hydration
+  // Remove splash screen after hydration (?splash to keep visible for debugging)
   useEffect(() => {
     const splash = document.getElementById("splash-screen");
     if (!splash) return;
+    const debugSplash = new URLSearchParams(window.location.search).has("splash");
+    const displayTime = debugSplash ? 5000 : 400;
     const timer = setTimeout(() => {
       splash.dataset.hidden = "true";
       setTimeout(() => splash.remove(), 700);
-    }, 400);
+    }, displayTime);
     return () => clearTimeout(timer);
   }, []);
 

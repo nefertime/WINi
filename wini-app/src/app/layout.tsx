@@ -27,7 +27,7 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "WINi — Wine Information",
+  title: "WINi — Wine Intelligence",
   description: "Premium AI-powered wine pairing recommendations",
   icons: { icon: "/favicon.ico" },
 };
@@ -88,6 +88,7 @@ export default function RootLayout({
               <line x1="35" y1="125" x2="65" y2="125" stroke="#FAF6F0" strokeWidth="1.2" opacity="0.5" strokeLinecap="round" />
             </svg>
             <div className="splash-pour" />
+            <div className="splash-drip" />
           </div>
           <div className="splash-logo">WIN<i>i</i></div>
           <p className="splash-tagline">Wine Intelligence</p>

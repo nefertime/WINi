@@ -114,8 +114,8 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               className="absolute inset-0 flex items-center justify-center cursor-pointer"
               onClick={handleBottleClick}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleBottleClick(); }}}
-              onMouseEnter={() => { handleHover(); setIsPulsing(true); setShowInfo(true); }}
-              onMouseLeave={() => { setIsPulsing(false); setShowInfo(false); }}
+              onMouseEnter={() => { if (!isTouch) { handleHover(); setIsPulsing(true); setShowInfo(true); } }}
+              onMouseLeave={() => { if (!isTouch) { setIsPulsing(false); setShowInfo(false); } }}
               role="button"
               tabIndex={0}
               aria-label={`${current.name} — hover or click to change`}
@@ -190,23 +190,24 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               onMouseLeave={() => setPromotedHover(false)}
               animate={{
                 opacity: isTouch
-                  ? promotedHover ? [0.65, 0.9, 0.65] : [0.5, 0.65, 0.5]
-                  : promotedHover ? [0.7, 0.95, 0.7] : [0.5, 0.7, 0.5],
+                  ? promotedHover ? [0.7, 0.95, 0.7] : [0.5, 0.75, 0.5]
+                  : promotedHover ? [0.75, 1, 0.75] : [0.5, 0.8, 0.5],
               }}
               transition={{
-                duration: promotedHover ? 1.6 : 3,
+                duration: promotedHover ? 1.2 : 2,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
               className="absolute z-[5] flex items-center justify-center"
               style={{
-                top: "20%",
+                top: "35%",
                 left: "clamp(-10rem, -20vw, -7rem)",
                 transform: "rotate(-90deg)",
                 transformOrigin: "center center",
+                overflow: "visible",
                 fontFamily: "var(--font-jost-family)",
                 fontWeight: 400,
-                fontSize: "clamp(1.2rem, 2.4vw, 1.4rem)",
+                fontSize: "clamp(1rem, 2vw, 1.17rem)",
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
                 color: "#E8DCC8",

@@ -182,42 +182,81 @@ body {
   overflow: visible;
 }
 
+/* Wine fill — scaleY from bottom so wine accumulates upward */
 .splash-fill {
-  animation: splash-fill 2s var(--ease-luxury) forwards;
-  transform-origin: bottom center;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: splash-fill 1.7s var(--ease-luxury) 0.4s both;
 }
 
 @keyframes splash-fill {
-  from { transform: scaleY(0); }
-  to { transform: scaleY(1); }
+  0% { transform: scaleY(0); opacity: 0; }
+  10% { transform: scaleY(0.15); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 1; }
 }
 
+/* Surface highlight — starts at bottom, rides up with rising wine */
 .splash-surface {
-  animation: splash-surface 2s var(--ease-luxury) forwards;
+  animation: splash-surface 1.7s var(--ease-luxury) 0.4s both;
 }
 
 @keyframes splash-surface {
-  from { transform: translateY(45px); }
+  from { transform: translateY(50px); }
   to { transform: translateY(0); }
 }
 
+/* Main pour stream — reaches from above down into the bowl */
 .splash-pour {
   position: absolute;
-  top: -20%;
+  top: -25%;
   left: 50%;
   transform: translateX(-50%);
-  width: 2px;
-  height: 40%;
-  background: linear-gradient(to bottom, transparent, var(--burgundy-glow));
+  width: 3px;
+  height: 85%;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    var(--burgundy-glow) 10%,
+    var(--burgundy-light) 40%,
+    var(--burgundy-glow) 75%,
+    transparent 100%
+  );
+  border-radius: 1.5px;
+  opacity: 0;
+  animation: splash-pour 2.3s ease forwards;
+}
+
+/* Secondary thin drip — offset, reaches into bowl */
+.splash-drip {
+  position: absolute;
+  top: -20%;
+  left: calc(50% + 2px);
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 70%;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    var(--burgundy-light) 25%,
+    var(--burgundy-glow) 60%,
+    transparent 100%
+  );
   border-radius: 1px;
   opacity: 0;
-  animation: splash-pour 2s ease forwards;
+  animation: splash-drip 1.8s ease 0.1s forwards;
 }
 
 @keyframes splash-pour {
   0% { opacity: 0; }
-  5% { opacity: 0.8; }
-  80% { opacity: 0.8; }
+  5% { opacity: 0.9; }
+  65% { opacity: 0.75; }
+  80% { opacity: 0.2; }
+  100% { opacity: 0; }
+}
+
+@keyframes splash-drip {
+  0% { opacity: 0; }
+  8% { opacity: 0.5; }
+  55% { opacity: 0.4; }
+  75% { opacity: 0.1; }
   100% { opacity: 0; }
 }
 
