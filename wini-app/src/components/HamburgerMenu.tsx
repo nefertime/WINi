@@ -79,7 +79,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
     if (isOpen) {
       storage.getFavorites().then(setFavorites);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop-to-state sync
-      setActiveSection(initialSection ?? "saved");
+      setActiveSection(initialSection ?? "account");
       setSelectedFav(null);
       setAccountPanelOpen(false);
     } else {
@@ -185,6 +185,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                       paddingRight: "1rem",
                       background: activeSection === item.id ? "rgba(92, 10, 30, 0.08)" : "transparent",
                       WebkitTapHighlightColor: "rgba(92, 10, 30, 0.15)",
+                      outline: "none",
                     }}
                   >
                     <span
@@ -263,7 +264,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                             <>
                               <p
                                 className="text-base italic mb-3"
-                                style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
+                                style={{ fontFamily: "var(--font-cormorant-family)", color: "#1A1A1A" }}
                               >
                                 Sign in to sync your pairings across devices
                               </p>
@@ -277,9 +278,9 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                   style={{
                                     fontFamily: "var(--font-jost-family)",
                                     fontWeight: 500,
-                                    color: "var(--charcoal)",
-                                    background: "var(--gold)",
-                                    border: "none",
+                                    color: "var(--cream)",
+                                    background: "linear-gradient(135deg, var(--burgundy), var(--burgundy-light))",
+                                    border: "1px solid rgba(92, 10, 30, 0.2)",
                                     cursor: "pointer",
                                   }}
                                 >
@@ -298,8 +299,6 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                     background: "transparent",
                                     border: "1px solid rgba(92, 10, 30, 0.15)",
                                     cursor: "pointer",
-                                    textDecoration: "underline",
-                                    textUnderlineOffset: "2px",
                                   }}
                                 >
                                   Create Account
@@ -327,7 +326,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                             <div className="py-2 px-1">
                               <p
                                 className="text-sm italic mb-2"
-                                style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
+                                style={{ fontFamily: "var(--font-cormorant-family)", color: "#1A1A1A" }}
                               >
                                 Sign in to save your pairing history
                               </p>
@@ -336,8 +335,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                 className="text-xs py-1.5 px-3 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
                                 style={{
                                   fontFamily: "var(--font-jost-family)", fontWeight: 500,
-                                  color: "var(--charcoal)", background: "var(--gold)",
-                                  border: "none", cursor: "pointer",
+                                  color: "var(--cream)", background: "linear-gradient(135deg, var(--burgundy), var(--burgundy-light))",
+                                  border: "1px solid rgba(92, 10, 30, 0.2)", cursor: "pointer",
                                 }}
                               >
                                 Sign In
@@ -346,7 +345,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                           ) : sessions.length === 0 ? (
                             <p
                               className="text-sm py-2 px-1 italic"
-                              style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
+                              style={{ fontFamily: "var(--font-cormorant-family)", color: "#1A1A1A" }}
                             >
                               No saved pairings yet
                             </p>
@@ -416,7 +415,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                             <div className="py-2 px-1">
                               <p
                                 className="text-sm italic mb-2"
-                                style={{ fontFamily: "var(--font-cormorant-family)", color: "rgba(26, 26, 26, 0.7)" }}
+                                style={{ fontFamily: "var(--font-cormorant-family)", color: "#1A1A1A" }}
                               >
                                 Sign in to save your favorite wines
                               </p>
@@ -425,8 +424,8 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                 className="text-xs py-1.5 px-3 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
                                 style={{
                                   fontFamily: "var(--font-jost-family)", fontWeight: 500,
-                                  color: "var(--charcoal)", background: "var(--gold)",
-                                  border: "none", cursor: "pointer",
+                                  color: "var(--cream)", background: "linear-gradient(135deg, var(--burgundy), var(--burgundy-light))",
+                                  border: "1px solid rgba(92, 10, 30, 0.2)", cursor: "pointer",
                                 }}
                               >
                                 Sign In

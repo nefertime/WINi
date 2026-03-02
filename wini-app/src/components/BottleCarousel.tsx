@@ -50,15 +50,26 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
     }, [showInfo, cycle]);
 
     // Click-outside dismisses info popup
+    // Defer listener to next frame so the tap that opened this popup doesn't immediately close it
     useEffect(() => {
       if (!showInfo) return;
-      const handler = (e: MouseEvent) => {
-        if (carouselRef.current && !carouselRef.current.contains(e.target as Node)) {
-          setShowInfo(false);
+      let handler: ((e: MouseEvent | TouchEvent) => void) | null = null;
+      const rafId = requestAnimationFrame(() => {
+        handler = (e: MouseEvent | TouchEvent) => {
+          if (carouselRef.current && !carouselRef.current.contains(e.target as Node)) {
+            setShowInfo(false);
+          }
+        };
+        document.addEventListener("mousedown", handler);
+        document.addEventListener("touchstart", handler);
+      });
+      return () => {
+        cancelAnimationFrame(rafId);
+        if (handler) {
+          document.removeEventListener("mousedown", handler);
+          document.removeEventListener("touchstart", handler);
         }
       };
-      document.addEventListener("mousedown", handler);
-      return () => document.removeEventListener("mousedown", handler);
     }, [showInfo]);
 
     const handleHover = useCallback(() => {
@@ -190,12 +201,12 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               className="absolute z-[5] flex items-center justify-center"
               style={{
                 top: "28%",
-                left: "clamp(-4.5rem, -7vw, -3rem)",
+                left: "clamp(-6.5rem, -10vw, -4.5rem)",
                 transform: "rotate(-90deg)",
                 transformOrigin: "center center",
                 fontFamily: "var(--font-jost-family)",
                 fontWeight: 400,
-                fontSize: "clamp(0.6rem, 1.2vw, 0.7rem)",
+                fontSize: "clamp(1.2rem, 2.4vw, 1.4rem)",
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
                 color: "#E8DCC8",
