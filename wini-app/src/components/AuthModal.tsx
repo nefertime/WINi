@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
@@ -30,6 +30,21 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
 
   useFocusTrap(modalRef, isOpen);
   useScrollLock(isOpen);
+
+  // Sync view with initialView when modal opens (component stays mounted)
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop-to-state sync
+      setView(initialView);
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setError("");
+      setForgotSent(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync on open/initialView change
+  }, [isOpen, initialView]);
 
   const resetForm = () => {
     setName("");
@@ -231,7 +246,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
 
                     <p
                       className="text-center text-sm mt-5"
-                      style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.5)" }}
+                      style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.7)" }}
                     >
                       Don&apos;t have an account?{" "}
                       <button
@@ -256,7 +271,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
                       className="text-2xl mb-6 text-center"
                       style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 600, color: "var(--cream-lightest)" }}
                     >
-                      Create Account
+                      Welcome!
                     </h2>
 
                     <form onSubmit={handleSignUp} className="space-y-4">
@@ -275,7 +290,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
 
                     <p
                       className="text-center text-sm mt-5"
-                      style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.5)" }}
+                      style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.7)" }}
                     >
                       Already have an account?{" "}
                       <button
@@ -322,7 +337,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
 
                     <p
                       className="text-center text-sm mt-5"
-                      style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.5)" }}
+                      style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.7)" }}
                     >
                       <button
                         onClick={() => switchView("signin")}
@@ -363,7 +378,7 @@ function InputField({
     <div>
       <label
         className="block text-xs mb-1.5"
-        style={{ fontFamily: "var(--font-jost-family)", fontWeight: 400, color: "rgba(250, 246, 240, 0.5)" }}
+        style={{ fontFamily: "var(--font-jost-family)", fontWeight: 400, color: "rgba(250, 246, 240, 0.7)" }}
       >
         {label}
       </label>
@@ -436,7 +451,7 @@ function Divider() {
       <div className="flex-1 h-px" style={{ background: "rgba(255, 255, 255, 0.08)" }} />
       <span
         className="text-xs"
-        style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.35)" }}
+        style={{ fontFamily: "var(--font-jost-family)", color: "rgba(250, 246, 240, 0.7)" }}
       >
         or continue with
       </span>

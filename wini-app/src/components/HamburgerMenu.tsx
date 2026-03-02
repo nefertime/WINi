@@ -274,7 +274,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                     onClose();
                                     onOpenAuth?.("signin");
                                   }}
-                                  className="text-sm py-1.5 px-3 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+                                  className="text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
                                   style={{
                                     fontFamily: "var(--font-jost-family)",
                                     fontWeight: 500,
@@ -291,7 +291,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                     onClose();
                                     onOpenAuth?.("signup");
                                   }}
-                                  className="text-sm py-1.5 px-3 rounded-lg transition-colors duration-200"
+                                  className="text-sm py-2 px-4 rounded-lg transition-colors duration-200"
                                   style={{
                                     fontFamily: "var(--font-jost-family)",
                                     fontWeight: 400,
@@ -332,7 +332,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                               </p>
                               <button
                                 onClick={() => { onClose(); onOpenAuth?.("signin"); }}
-                                className="text-xs py-1.5 px-3 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+                                className="text-xs py-2 px-4 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
                                 style={{
                                   fontFamily: "var(--font-jost-family)", fontWeight: 500,
                                   color: "var(--cream)", background: "linear-gradient(135deg, var(--burgundy), var(--burgundy-light))",
@@ -421,7 +421,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                               </p>
                               <button
                                 onClick={() => { onClose(); onOpenAuth?.("signin"); }}
-                                className="text-xs py-1.5 px-3 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+                                className="text-xs py-2 px-4 rounded-lg transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
                                 style={{
                                   fontFamily: "var(--font-jost-family)", fontWeight: 500,
                                   color: "var(--cream)", background: "linear-gradient(135deg, var(--burgundy), var(--burgundy-light))",

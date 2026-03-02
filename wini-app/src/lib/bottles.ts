@@ -9,8 +9,6 @@ export const BOTTLES: Bottle[] = [
   { name: "Red Label", src: `${BASE}/red-label-full.png`, type: "red" },
   { name: "Chardonnay", src: `${BASE}/chardonnay-full.png`, type: "white" },
   { name: "Gold Label", src: `${BASE}/gold-label-full.png`, type: "white" },
-  { name: "Silver Reserve", src: `${BASE}/silver-reserve-full.png`, type: "both" },
-
   // ── Single-bottle reds ──
   { name: "Colheita", src: `${BASE}/colheita-full.png`, type: "red" },
   { name: "Côtes du Rhône Villages", src: `${BASE}/cotes-du-rhone-villages-full.png`, type: "red" },
@@ -84,12 +82,6 @@ export const BOTTLE_INFO: Record<string, BottleInfo> = {
     region: "Mosel, Germany",
     description: "Aromatic and off-dry with honeyed stone fruit, lime zest and racy acidity.",
     buyUrl: "https://www.vivino.com/search/wines?q=mosel+riesling",
-  },
-  "Silver Reserve": {
-    grape: "Cabernet Sauvignon · Chardonnay",
-    region: "Napa Valley, USA",
-    description: "A refined blend showcasing cassis, toasty oak and bright citrus notes.",
-    buyUrl: "https://www.vivino.com/search/wines?q=napa+valley+reserve",
   },
   "Colheita": {
     grape: "Touriga Nacional · Tinta Roriz",
