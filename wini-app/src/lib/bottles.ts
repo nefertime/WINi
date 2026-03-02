@@ -7,7 +7,6 @@ export const BOTTLES: Bottle[] = [
   { name: "Costières de Nîmes", src: `${BASE}/costieres-red-full.png`, type: "red" },
   { name: "Shiraz Cabernet", src: `${BASE}/shiraz-cabernet-full.png`, type: "red" },
   { name: "Red Label", src: `${BASE}/red-label-full.png`, type: "red" },
-  { name: "Chardonnay", src: `${BASE}/chardonnay-full.png`, type: "white" },
   { name: "Gold Label", src: `${BASE}/gold-label-full.png`, type: "white" },
   // ── Single-bottle reds ──
   { name: "Colheita", src: `${BASE}/colheita-full.png`, type: "red" },
@@ -70,12 +69,6 @@ export const BOTTLE_INFO: Record<string, BottleInfo> = {
     region: "Rioja, Spain",
     description: "Classic Rioja with cherry, vanilla oak and a smooth, lingering finish.",
     buyUrl: "https://www.vivino.com/search/wines?q=rioja+red+label",
-  },
-  "Chardonnay": {
-    grape: "Chardonnay",
-    region: "Burgundy, France",
-    description: "Elegant and mineral-driven with citrus, white peach and a crisp finish.",
-    buyUrl: "https://www.vivino.com/search/wines?q=burgundy+chardonnay",
   },
   "Gold Label": {
     grape: "Riesling",

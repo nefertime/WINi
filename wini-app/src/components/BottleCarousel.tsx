@@ -201,7 +201,7 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
               className="absolute z-[5] flex items-center justify-center"
               style={{
                 top: "20%",
-                left: "clamp(-8rem, -14vw, -5.5rem)",
+                left: "clamp(-10rem, -20vw, -7rem)",
                 transform: "rotate(-90deg)",
                 transformOrigin: "center center",
                 fontFamily: "var(--font-jost-family)",

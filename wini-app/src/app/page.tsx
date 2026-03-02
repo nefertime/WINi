@@ -47,6 +47,17 @@ export default function Home() {
   const [authPromptMessage, setAuthPromptMessage] = useState("");
   const storage = useStorage();
 
+  // Remove splash screen after hydration
+  useEffect(() => {
+    const splash = document.getElementById("splash-screen");
+    if (!splash) return;
+    const timer = setTimeout(() => {
+      splash.dataset.hidden = "true";
+      setTimeout(() => splash.remove(), 700);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Image preservation for back + regeneration
   const [lastBase64Images, setLastBase64Images] = useState<string[]>([]);
   const [lastImages, setLastImages] = useState<File[]>([]);
