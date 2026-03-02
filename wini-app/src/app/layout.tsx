@@ -62,6 +62,7 @@ export default function RootLayout({
               </defs>
               {/* Wine fill — clipped to bowl, animated scaleY */}
               <rect
+                id="splash-fill-rect"
                 x="25" y="30" width="50" height="65"
                 fill="#9B2335"
                 clipPath="url(#bowl-clip)"
@@ -69,6 +70,7 @@ export default function RootLayout({
               />
               {/* Surface highlight — rides up with fill */}
               <line
+                id="splash-surface-line"
                 x1="32" y1="34" x2="68" y2="34"
                 stroke="#C9A84C" strokeWidth="0.8" opacity="0.4"
                 clipPath="url(#bowl-clip)"

@@ -182,27 +182,42 @@ body {
   overflow: visible;
 }
 
-/* Wine fill — scaleY from bottom so wine accumulates upward */
+/* Wine fill — scaleY from bottom, CSS drives to 60%, JS completes to 100% */
 .splash-fill {
   transform-box: fill-box;
   transform-origin: center bottom;
-  animation: splash-fill 1.7s var(--ease-luxury) 0.4s both;
+  animation: splash-fill 2.5s var(--ease-luxury) 0.3s both;
 }
 
 @keyframes splash-fill {
   0% { transform: scaleY(0); opacity: 0; }
   10% { transform: scaleY(0.15); opacity: 1; }
-  100% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.6); opacity: 1; }
+}
+
+/* JS handoff: freeze CSS animation, transition inline scaleY to 100% */
+.splash-fill-complete {
+  animation: none !important;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  transition: transform 0.4s var(--ease-luxury);
+  opacity: 1;
 }
 
 /* Surface highlight — starts at bottom, rides up with rising wine */
 .splash-surface {
-  animation: splash-surface 1.7s var(--ease-luxury) 0.4s both;
+  animation: splash-surface 2.5s var(--ease-luxury) 0.3s both;
 }
 
 @keyframes splash-surface {
   from { transform: translateY(50px); }
-  to { transform: translateY(0); }
+  to { transform: translateY(20px); }
+}
+
+/* JS handoff: freeze CSS animation, transition inline translateY to 0 */
+.splash-surface-complete {
+  animation: none !important;
+  transition: transform 0.4s var(--ease-luxury);
 }
 
 /* Main pour stream — reaches from above down into the bowl */

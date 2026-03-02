@@ -47,17 +47,83 @@ export default function Home() {
   const [authPromptMessage, setAuthPromptMessage] = useState("");
   const storage = useStorage();
 
-  // Remove splash screen after hydration (?splash to keep visible for debugging)
+  // Splash screen: CSS fills to 60%, JS drives milestones to 100%, then dismiss
   useEffect(() => {
     const splash = document.getElementById("splash-screen");
     if (!splash) return;
+
     const debugSplash = new URLSearchParams(window.location.search).has("splash");
-    const displayTime = debugSplash ? 5000 : 400;
-    const timer = setTimeout(() => {
-      splash.dataset.hidden = "true";
-      setTimeout(() => splash.remove(), 700);
-    }, displayTime);
-    return () => clearTimeout(timer);
+    if (debugSplash) {
+      const timer = setTimeout(() => {
+        splash.dataset.hidden = "true";
+        setTimeout(() => splash.remove(), 700);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+
+    const fillRect = document.getElementById("splash-fill-rect");
+    const surfaceLine = document.getElementById("splash-surface-line");
+    const navStart = performance.now();
+    const MIN_DISPLAY_MS = 1500;
+
+    // Helper: set fill level (0–1) with CSS transition
+    const setFill = (level: number) => {
+      if (fillRect) {
+        // Read current CSS scaleY on first call, then freeze animation
+        if (!fillRect.classList.contains("splash-fill-complete")) {
+          const computed = getComputedStyle(fillRect).transform;
+          // Extract current scaleY from matrix — matrix(a,b,c,d,tx,ty), d = scaleY
+          const match = computed.match(/matrix\(([^)]+)\)/);
+          const currentScaleY = match ? parseFloat(match[1].split(",")[3]) : 0.6;
+          fillRect.style.transform = `scaleY(${currentScaleY})`;
+          fillRect.classList.add("splash-fill-complete");
+          // Force reflow so the browser registers the starting value
+          fillRect.getBoundingClientRect();
+        }
+        fillRect.style.transform = `scaleY(${level})`;
+      }
+      if (surfaceLine) {
+        if (!surfaceLine.classList.contains("splash-surface-complete")) {
+          const computed = getComputedStyle(surfaceLine).transform;
+          const match = computed.match(/matrix\(([^)]+)\)/);
+          const currentTy = match ? parseFloat(match[1].split(",")[5]) : 20;
+          surfaceLine.style.transform = `translateY(${currentTy}px)`;
+          surfaceLine.classList.add("splash-surface-complete");
+          surfaceLine.getBoundingClientRect();
+        }
+        // Map fill level: 0→50px, 1→0px
+        surfaceLine.style.transform = `translateY(${50 * (1 - level)}px)`;
+      }
+    };
+
+    // Milestone 1: Hydrated — drive to 70%
+    setFill(0.7);
+
+    // Milestone 2: Fonts loaded — drive to 85%
+    const fontsPromise = document.fonts.ready.then(() => {
+      if (!dismissed) setFill(0.85);
+    });
+
+    // Milestone 3: Ready — fill to 100%, respect minimum display time, then dismiss
+    const minTimePromise = new Promise<void>((resolve) => {
+      const elapsed = performance.now() - navStart;
+      const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed);
+      setTimeout(resolve, remaining);
+    });
+
+    let dismissed = false;
+    Promise.all([fontsPromise, minTimePromise]).then(() => {
+      if (dismissed) return;
+      setFill(1.0);
+      // Wait 500ms for the fill-to-100% transition to complete visually
+      setTimeout(() => {
+        if (dismissed) return;
+        splash.dataset.hidden = "true";
+        setTimeout(() => splash.remove(), 700);
+      }, 500);
+    });
+
+    return () => { dismissed = true; };
   }, []);
 
   // Image preservation for back + regeneration
