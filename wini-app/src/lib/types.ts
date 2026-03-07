@@ -16,7 +16,10 @@ export type Wine = {
   grape: string;
   region: string;
   vintage: string;
+  price_estimate?: string;
 };
+
+export type PairingLabel = "best_pick" | "value_pick" | "wild_one";
 
 export type Pairing = {
   dish_id: string;
@@ -24,6 +27,7 @@ export type Pairing = {
   score: number;
   reason: string;
   detailed_reason: string;
+  label?: PairingLabel;
 };
 
 export type AnalyzeResponse = {

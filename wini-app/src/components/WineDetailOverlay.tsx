@@ -257,17 +257,42 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
             </div>
           ) : null}
 
-          {/* Actions */}
-          <div style={{ marginTop: "1rem" }}>
+          {/* Actions — multiple store links */}
+          <div className="flex flex-col gap-2" style={{ marginTop: "1rem" }}>
+            {wine.price_estimate && (
+              <p className="text-xs text-cream/40 text-center mb-1" style={{ fontFamily: "var(--font-jost-family)" }}>
+                Estimated price: {wine.price_estimate}
+              </p>
+            )}
             <button
               onClick={() => {
-                window.open(`https://www.vivino.com/search/wines?q=${encodeURIComponent(wine.name)}`, "_blank");
+                window.open(`https://www.alko.fi/tuotteet/haku?search=${encodeURIComponent(wine.name)}`, "_blank");
               }}
               className="w-full py-3 rounded-full text-sm text-charcoal font-medium transition-all duration-300 hover:opacity-90 cursor-pointer"
               style={{ background: "var(--gold)", fontFamily: "var(--font-jost-family)" }}
             >
-              Buy this wine
+              Search on Alko
             </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  window.open(`https://www.vivino.com/search/wines?q=${encodeURIComponent(wine.name)}`, "_blank");
+                }}
+                className="flex-1 py-2.5 rounded-full text-xs font-medium transition-all duration-300 hover:opacity-90 cursor-pointer"
+                style={{ background: "rgba(255, 255, 255, 0.06)", border: "1px solid rgba(255, 255, 255, 0.1)", color: "var(--cream-lightest)", fontFamily: "var(--font-jost-family)" }}
+              >
+                Vivino
+              </button>
+              <button
+                onClick={() => {
+                  window.open(`https://viinilehti.fi/viinit/?s=${encodeURIComponent(wine.name)}`, "_blank");
+                }}
+                className="flex-1 py-2.5 rounded-full text-xs font-medium transition-all duration-300 hover:opacity-90 cursor-pointer"
+                style={{ background: "rgba(255, 255, 255, 0.06)", border: "1px solid rgba(255, 255, 255, 0.1)", color: "var(--cream-lightest)", fontFamily: "var(--font-jost-family)" }}
+              >
+                Viinilehti
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>

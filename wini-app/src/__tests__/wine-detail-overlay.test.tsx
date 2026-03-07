@@ -131,10 +131,10 @@ describe("WineDetailOverlay", () => {
     expect(within(panel).getByText("Goat cheese")).toBeInTheDocument();
   });
 
-  it("renders Buy this wine button", () => {
+  it("renders Search on Alko button", () => {
     const { container } = render(<WineDetailOverlay wine={mockWine} onClose={vi.fn()} />);
     const panel = getOverlayPanel(container);
-    expect(within(panel).getByRole("button", { name: "Buy this wine" })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: "Search on Alko" })).toBeInTheDocument();
   });
 
   it("shows fallback message when API fails", async () => {
@@ -219,7 +219,7 @@ describe("WineDetailOverlay — responsive (CSS tokens)", () => {
     expect(within(panel).getByRole("heading", { name: "Sancerre" })).toBeInTheDocument();
     expect(within(panel).getByText("Why this pairing works")).toBeInTheDocument();
     expect(within(panel).getByText("Pairs beautifully.")).toBeInTheDocument();
-    expect(within(panel).getByRole("button", { name: "Buy this wine" })).toBeInTheDocument();
+    expect(within(panel).getByRole("button", { name: "Search on Alko" })).toBeInTheDocument();
 
     expect(within(panel).getByText("Classic Pairings")).toBeInTheDocument();
     expect(within(panel).queryByText("Tasting Notes")).not.toBeInTheDocument();

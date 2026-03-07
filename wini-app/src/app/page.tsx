@@ -11,7 +11,7 @@ import FloatingHints from "@/components/FloatingHints";
 import MenuButton from "@/components/MenuButton";
 import HamburgerMenu, { MenuSection } from "@/components/HamburgerMenu";
 import WineDetailOverlay from "@/components/WineDetailOverlay";
-import DishShelf from "@/components/DishShelf";
+import CuttingBoard from "@/components/CuttingBoard";
 import AuthModal from "@/components/AuthModal";
 import { convertImageToJpeg } from "@/utils/imageUtils";
 import { AnalyzeResponse, Dish, Session, Wine } from "@/lib/types";
@@ -20,6 +20,7 @@ import { useBottlePreload } from "@/hooks/useBottlePreload";
 import AuthPrompt from "@/components/AuthPrompt";
 
 type AppState = "home" | "scanning" | "results";
+type PairingMode = "restaurant" | "home_cooking";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -47,6 +48,7 @@ export default function Home() {
   const [menuInitialSection, setMenuInitialSection] = useState<MenuSection>(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [authPromptMessage, setAuthPromptMessage] = useState("");
+  const [pairingMode, setPairingMode] = useState<PairingMode>("restaurant");
   const storage = useStorage();
 
   // Splash screen: CSS fills to 60%, JS drives milestones to 100%, then dismiss
@@ -209,11 +211,22 @@ export default function Home() {
       setLastBase64Images(newPreviews);
     }
     const imagesToSend = newPreviews.length > 0 ? newPreviews : lastBase64Images;
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: imagesToSend, text }),
-      });
+
+      // Mode detection: no images = home cooking mode
+      const isHomeCooking = imagesToSend.length === 0 && text.trim().length > 0;
+      setPairingMode(isHomeCooking ? "home_cooking" : "restaurant");
+
+      const res = isHomeCooking
+        ? await fetch("/api/home-pairing", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, images: [] }),
+          })
+        : await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ images: imagesToSend, text }),
+          });
 
       if (!res.ok) throw new Error("Analysis failed");
 
@@ -554,6 +567,7 @@ export default function Home() {
                 isPairingSaved={isPairingSaved}
                 onSavePairing={handleSavePairing}
                 isAuthenticated={storage.isAuthenticated}
+                pairingMode={pairingMode}
                 onAuthPrompt={() => {
                   setAuthPromptMessage("Sign in to save your favorites");
                   setShowAuthPrompt(true);
@@ -574,29 +588,36 @@ export default function Home() {
           transition={{ duration: 0.5, ease }}
           style={{ pointerEvents: state === "scanning" ? "none" : "auto", marginBottom: "clamp(1rem, 3vh, 2rem)" }}
         >
-          {showResultsLayout && shelfDishes.length > 0 && (
-            <DishShelf
-              dishes={shelfDishes}
-              onAdd={handleAddDish}
-              maxActive={5}
-              activeCount={activeDishes.length}
+          {showResultsLayout ? (
+            <div className="flex flex-col items-center gap-3">
+              {(shelfDishes.length > 0 || (needsRegeneration && lastBase64Images.length > 0)) && (
+                <CuttingBoard
+                  dishes={shelfDishes}
+                  onAdd={handleAddDish}
+                  maxActive={5}
+                  activeCount={activeDishes.length}
+                  needsRegeneration={needsRegeneration && lastBase64Images.length > 0}
+                  isRegenerating={isRegenerating}
+                  onRegenerate={handleRegenerate}
+                />
+              )}
+            </div>
+          ) : (
+            <SearchBar
+              onSubmit={handleSubmit}
+              position="center"
+              language={pairingData?.language}
+              onTranslate={handleTranslate}
+              isTranslating={isTranslating}
+              initialImages={lastImages}
+              initialPreviews={lastPreviews}
+              onClean={handleClean}
+              needsRegeneration={needsRegeneration && lastBase64Images.length > 0}
+              isRegenerating={isRegenerating}
+              onRegenerate={handleRegenerate}
+              hideCamera={false}
             />
           )}
-          <SearchBar
-            onSubmit={handleSubmit}
-            position="center"
-            placeholder={showResultsLayout ? "What do you think of the pairing ideas?" : undefined}
-            language={pairingData?.language}
-            onTranslate={handleTranslate}
-            isTranslating={isTranslating}
-            initialImages={lastImages}
-            initialPreviews={lastPreviews}
-            onClean={handleClean}
-            needsRegeneration={needsRegeneration && lastBase64Images.length > 0}
-            isRegenerating={isRegenerating}
-            onRegenerate={handleRegenerate}
-            hideCamera={showResultsLayout}
-          />
         </motion.div>
 
         {/* Back button — next to avatar, results mode only */}
@@ -704,21 +725,21 @@ function getDemoData(): AnalyzeResponse {
       { id: "w5", name: "Whispering Angel", type: "rosé", grape: "Grenache blend", region: "Provence", vintage: "2023" },
     ],
     pairings: [
-      // d1 Lamb → w1 Margaux (top pick), w3 Barolo
-      { dish_id: "d1", wine_id: "w1", score: 0.96, reason: "The structured tannins of Margaux embrace the lamb's richness while dark fruit echoes the rosemary.", detailed_reason: "Chateau Margaux's elegant structure provides the perfect counterpoint to grilled lamb. The wine's dark fruit — cassis, blackberry — mirrors the herbaceous rosemary jus, while its refined tannins cut through the meat's fat." },
-      { dish_id: "d1", wine_id: "w3", score: 0.91, reason: "Barolo's firm tannins and earthy complexity complement the lamb's depth beautifully.", detailed_reason: "Nebbiolo's naturally high tannins and complex aromas of tar, roses, and dried herbs create a sophisticated pairing with grilled lamb. The wine's earthy undertones enhance the roasted vegetables." },
-      // d2 Salmon → w2 Cloudy Bay (top pick), w4 Chablis
-      { dish_id: "d2", wine_id: "w2", score: 0.94, reason: "Vibrant Sauvignon Blanc lifts the salmon with citrus that mirrors the beurre blanc.", detailed_reason: "Cloudy Bay's zesty citrus and herbaceous notes create a natural bridge to the citrus beurre blanc. The wine's crisp acidity cuts through the salmon's oils while tropical undertones complement the asparagus." },
-      { dish_id: "d2", wine_id: "w4", score: 0.89, reason: "Chablis brings mineral elegance that enhances the salmon without overwhelming it.", detailed_reason: "Premier Cru Chablis with its flinty minerality provides an elegant backdrop for pan-seared salmon. Its subtle oak influence complements the beurre blanc while acidity keeps things fresh." },
-      // d3 Risotto → w3 Barolo (shared with d1, top pick), w4 Chablis (shared with d2)
-      { dish_id: "d3", wine_id: "w3", score: 0.93, reason: "Barolo's earthy, truffle-like character is a natural soulmate for mushroom risotto.", detailed_reason: "Nebbiolo's inherent earthiness — dried mushroom, truffle, forest floor — creates a spiritual connection with wild mushroom risotto. The wine's acidity cuts through the creaminess beautifully." },
+      // d1 Lamb → w1 Margaux (best pick), w3 Barolo (wild one)
+      { dish_id: "d1", wine_id: "w1", score: 0.96, reason: "The structured tannins of Margaux embrace the lamb's richness while dark fruit echoes the rosemary.", detailed_reason: "Chateau Margaux's elegant structure provides the perfect counterpoint to grilled lamb. The wine's dark fruit — cassis, blackberry — mirrors the herbaceous rosemary jus, while its refined tannins cut through the meat's fat.", label: "best_pick" },
+      { dish_id: "d1", wine_id: "w3", score: 0.91, reason: "Barolo's firm tannins and earthy complexity complement the lamb's depth beautifully.", detailed_reason: "Nebbiolo's naturally high tannins and complex aromas of tar, roses, and dried herbs create a sophisticated pairing with grilled lamb. The wine's earthy undertones enhance the roasted vegetables.", label: "wild_one" },
+      // d2 Salmon → w2 Cloudy Bay (best pick), w4 Chablis
+      { dish_id: "d2", wine_id: "w2", score: 0.94, reason: "Vibrant Sauvignon Blanc lifts the salmon with citrus that mirrors the beurre blanc.", detailed_reason: "Cloudy Bay's zesty citrus and herbaceous notes create a natural bridge to the citrus beurre blanc. The wine's crisp acidity cuts through the salmon's oils while tropical undertones complement the asparagus.", label: "best_pick" },
+      { dish_id: "d2", wine_id: "w4", score: 0.89, reason: "Chablis brings mineral elegance that enhances the salmon without overwhelming it.", detailed_reason: "Premier Cru Chablis with its flinty minerality provides an elegant backdrop for pan-seared salmon. Its subtle oak influence complements the beurre blanc while acidity keeps things fresh.", label: "wild_one" },
+      // d3 Risotto → w3 Barolo (best pick), w4 Chablis
+      { dish_id: "d3", wine_id: "w3", score: 0.93, reason: "Barolo's earthy, truffle-like character is a natural soulmate for mushroom risotto.", detailed_reason: "Nebbiolo's inherent earthiness — dried mushroom, truffle, forest floor — creates a spiritual connection with wild mushroom risotto. The wine's acidity cuts through the creaminess beautifully.", label: "best_pick" },
       { dish_id: "d3", wine_id: "w4", score: 0.85, reason: "Chablis adds a refreshing counterpoint to the rich, creamy risotto.", detailed_reason: "The mineral-driven purity of Chablis provides a clean counterbalance to mushroom risotto's richness. Its acidity refreshes the palate after each creamy bite." },
-      // d4 Beef → w1 Margaux (shared with d1, top pick), w3 Barolo (shared with d1/d3)
-      { dish_id: "d4", wine_id: "w1", score: 0.97, reason: "Chateau Margaux and beef tenderloin — both embody refined power. A legendary pairing.", detailed_reason: "Beef tenderloin with red wine reduction is the ultimate Bordeaux-beef partnership. Margaux's velvety tannins and dark fruit create a harmonious dialogue with the tender beef." },
-      { dish_id: "d4", wine_id: "w3", score: 0.90, reason: "Barolo's power and complexity stand up beautifully to the tenderloin's richness.", detailed_reason: "Barolo Riserva brings dried cherry, leather, and spice that elevate beef tenderloin. The wine's firm tannins provide structure for the red wine reduction." },
-      // d5 Lobster → w4 Chablis (shared with d2/d3, top pick), w5 Whispering Angel
-      { dish_id: "d5", wine_id: "w4", score: 0.92, reason: "Premier Cru Chablis has the weight and mineral depth to match lobster's sweetness.", detailed_reason: "Lobster Thermidor demands white wine with elegance and substance. Chablis Premier Cru delivers: mineral-laden palate complements the lobster's sweetness while crisp acidity cuts through the sauce." },
-      { dish_id: "d5", wine_id: "w5", score: 0.88, reason: "Whispering Angel's delicate fruit and crisp acidity complement lobster's sweetness.", detailed_reason: "A premium Provence rosé brings subtle peach and citrus notes that enhance lobster without competing. The wine's Mediterranean character suits the rich Thermidor sauce beautifully." },
+      // d4 Beef → w1 Margaux (best pick), w3 Barolo (wild one)
+      { dish_id: "d4", wine_id: "w1", score: 0.97, reason: "Chateau Margaux and beef tenderloin — both embody refined power. A legendary pairing.", detailed_reason: "Beef tenderloin with red wine reduction is the ultimate Bordeaux-beef partnership. Margaux's velvety tannins and dark fruit create a harmonious dialogue with the tender beef.", label: "best_pick" },
+      { dish_id: "d4", wine_id: "w3", score: 0.90, reason: "Barolo's power and complexity stand up beautifully to the tenderloin's richness.", detailed_reason: "Barolo Riserva brings dried cherry, leather, and spice that elevate beef tenderloin. The wine's firm tannins provide structure for the red wine reduction.", label: "wild_one" },
+      // d5 Lobster → w4 Chablis (best pick), w5 Whispering Angel (wild one)
+      { dish_id: "d5", wine_id: "w4", score: 0.92, reason: "Premier Cru Chablis has the weight and mineral depth to match lobster's sweetness.", detailed_reason: "Lobster Thermidor demands white wine with elegance and substance. Chablis Premier Cru delivers: mineral-laden palate complements the lobster's sweetness while crisp acidity cuts through the sauce.", label: "best_pick" },
+      { dish_id: "d5", wine_id: "w5", score: 0.88, reason: "Whispering Angel's delicate fruit and crisp acidity complement lobster's sweetness.", detailed_reason: "A premium Provence rosé brings subtle peach and citrus notes that enhance lobster without competing. The wine's Mediterranean character suits the rich Thermidor sauce beautifully.", label: "wild_one" },
     ],
   };
 }

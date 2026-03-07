@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dish, Wine, Pairing } from "@/lib/types";
+import { Dish, Wine, Pairing, PairingLabel } from "@/lib/types";
 import WineDetailOverlay from "./WineDetailOverlay";
 import { useStorage } from "@/hooks/useStorage";
 
@@ -16,6 +16,7 @@ type InlinePairingResultsProps = {
   onSavePairing?: () => void;
   isAuthenticated?: boolean;
   onAuthPrompt?: () => void;
+  pairingMode?: "restaurant" | "home_cooking";
 };
 
 const typeColors: Record<string, string> = {
@@ -37,6 +38,12 @@ const categoryIcons: Record<string, string> = {
   other: "\u{1F37D}",
 };
 
+const labelConfig: Record<PairingLabel, { color: string; bg: string; border: string; icon: string; text: string }> = {
+  best_pick: { color: "#1A0A0E", bg: "linear-gradient(135deg, #C9A84C, #E8D48A)", border: "#C9A84C", icon: "\u2605", text: "Best Pick" },
+  value_pick: { color: "#1A3A0E", bg: "linear-gradient(135deg, #4CAF50, #81C784)", border: "#4CAF50", icon: "$", text: "Value Pick" },
+  wild_one: { color: "#FAF6F0", bg: "linear-gradient(135deg, #9B2335, #C0394F)", border: "#9B2335", icon: "\u26A1", text: "Wild One" },
+};
+
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export default function InlinePairingResults({
@@ -49,6 +56,7 @@ export default function InlinePairingResults({
   onSavePairing,
   isAuthenticated = false,
   onAuthPrompt,
+  pairingMode = "restaurant",
 }: InlinePairingResultsProps) {
   const storage = useStorage();
   const activeDishes = dishes.filter((d) => !dismissedDishIds.has(d.id));
@@ -79,12 +87,18 @@ export default function InlinePairingResults({
   // Scale wine cards when many wines are shown
   const wineScale = wines.length <= 5 ? 1 : wines.length <= 7 ? 0.9 : 0.82;
 
-  // Top pick: highest-scored wine for the currently selected dish
-  const topPickWineId = activeItem?.type === "dish"
-    ? pairings
-        .filter((p) => p.dish_id === activeItem.id)
-        .sort((a, b) => b.score - a.score)[0]?.wine_id ?? null
-    : null;
+  // Label map: wine_id → PairingLabel for the currently selected dish
+  const wineLabelMap = new Map<string, PairingLabel>();
+  if (activeItem?.type === "dish") {
+    for (const p of pairings.filter((p) => p.dish_id === activeItem.id)) {
+      if (p.label) wineLabelMap.set(p.wine_id, p.label);
+    }
+    // Fallback: if no labels from API, mark highest-scored as best_pick
+    if (wineLabelMap.size === 0) {
+      const sorted = pairings.filter((p) => p.dish_id === activeItem.id).sort((a, b) => b.score - a.score);
+      if (sorted.length > 0) wineLabelMap.set(sorted[0].wine_id, "best_pick");
+    }
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for future connection line rendering
   const _connections = activeItem
@@ -351,24 +365,41 @@ export default function InlinePairingResults({
             <div className="flex items-center mb-1 px-1" style={{ gap: "clamp(0.5rem, 1vw, 0.75rem)" }}>
               <h3
                 className="uppercase tracking-wider"
-                style={{ fontFamily: "var(--font-jost-family)", color: "rgba(26, 10, 14, 0.8)", fontSize: "clamp(0.75rem, 0.9vw, 0.85rem)" }}
+                style={{ fontFamily: "var(--font-jost-family)", fontWeight: 600, color: "rgba(26, 10, 14, 0.8)", fontSize: "clamp(0.8rem, 1vw, 0.95rem)" }}
               >
                 Wines
               </h3>
+              {pairingMode === "home_cooking" && (
+                <span
+                  className="flex items-center gap-1"
+                  style={{
+                    fontFamily: "var(--font-jost-family)",
+                    fontSize: "clamp(0.5rem, 0.7vw, 0.6rem)",
+                    color: "rgba(26, 10, 14, 0.45)",
+                  }}
+                  title="Home cooking mode — wines from retail stores"
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                  Home
+                </span>
+              )}
               {onSavePairing && (
                 <motion.button
                   onClick={onSavePairing}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3, duration: 0.2, ease }}
-                  className="flex items-center justify-center gap-1 rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="flex items-center justify-center gap-1.5 rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
                   style={{
-                    padding: "0.15rem clamp(0.45rem, 0.9vw, 0.65rem)",
+                    padding: "0.2rem clamp(0.5rem, 1vw, 0.75rem)",
                     fontFamily: "var(--font-jost-family)",
-                    fontSize: "clamp(0.55rem, 0.7vw, 0.65rem)",
+                    fontSize: "clamp(0.65rem, 0.85vw, 0.8rem)",
                     fontWeight: 500,
                     lineHeight: 1,
-                    minWidth: "4.5rem",
+                    minWidth: "5.5rem",
                     background: isPairingSaved ? "#C9A84C" : "rgba(201, 168, 76, 0.08)",
                     border: `1px solid ${isPairingSaved ? "#C9A84C" : "rgba(201, 168, 76, 0.4)"}`,
                     color: isPairingSaved ? "#FAF6F0" : "rgba(26, 10, 14, 0.7)",
@@ -377,15 +408,21 @@ export default function InlinePairingResults({
                   aria-label={isPairingSaved ? "Remove saved pairing" : "Save this pairing"}
                 >
                   {isPairingSaved ? (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                      <line x1="4" y1="22" x2="4" y2="15" />
                     </svg>
                   ) : (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                    </svg>
+                    <motion.svg
+                      width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                      <line x1="4" y1="22" x2="4" y2="15" />
+                    </motion.svg>
                   )}
-                  <span>{isPairingSaved ? "Saved" : "Save"}</span>
+                  <span>{isPairingSaved ? "Pairing saved" : "Save pairing"}</span>
                 </motion.button>
               )}
             </div>
@@ -419,7 +456,7 @@ export default function InlinePairingResults({
                 : "rgba(26, 10, 14, 0.15)";
               const textColor = isHovered ? "var(--cream-lightest)" : "#1A0A0E";
               const subTextColor = isHovered ? "rgba(250, 246, 240, 0.6)" : "rgba(26, 10, 14, 0.55)";
-              const heartStroke = isHovered ? "rgba(250, 246, 240, 0.5)" : "rgba(26, 10, 14, 0.35)";
+
 
               return (
                 <motion.div
@@ -440,7 +477,7 @@ export default function InlinePairingResults({
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleWineClick(wine, e as unknown as React.MouseEvent); }}}
                   onMouseEnter={() => setHoveredWineId(wine.id)}
                   onMouseLeave={() => setHoveredWineId(null)}
-                  className="text-left rounded-lg cursor-pointer"
+                  className="text-left rounded-lg cursor-pointer relative"
                   style={{
                     background: cardBg,
                     border: `1.5px solid ${cardBorder}`,
@@ -452,6 +489,43 @@ export default function InlinePairingResults({
                     transition: "background 0.25s ease, border-color 0.25s ease, box-shadow 0.3s ease",
                   }}
                 >
+                  {/* Podium label badge */}
+                  <AnimatePresence>
+                    {wineLabelMap.has(wine.id) && (() => {
+                      const lbl = labelConfig[wineLabelMap.get(wine.id)!];
+                      return (
+                        <motion.span
+                          key={wineLabelMap.get(wine.id)}
+                          initial={{ opacity: 0, scale: 0.7 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.7 }}
+                          transition={{ duration: 0.2, ease }}
+                          className="absolute flex items-center gap-1 rounded-full pointer-events-none"
+                          style={{
+                            top: "-0.55rem",
+                            left: "0.5rem",
+                            padding: "0.15rem 0.55rem",
+                            background: lbl.bg,
+                            border: `1.5px solid ${lbl.border}`,
+                            boxShadow: `0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 0.5px ${lbl.border}40`,
+                            zIndex: 2,
+                          }}
+                        >
+                          <span style={{ fontSize: "0.6rem", lineHeight: 1 }}>{lbl.icon}</span>
+                          <span style={{
+                            fontFamily: "var(--font-jost-family)",
+                            fontWeight: 700,
+                            fontSize: "clamp(0.5rem, 0.7vw, 0.6rem)",
+                            color: lbl.color,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}>
+                            {lbl.text}
+                          </span>
+                        </motion.span>
+                      );
+                    })()}
+                  </AnimatePresence>
                   <div className="flex items-center" style={{ gap: "clamp(0.35rem, 0.6vw, 0.6rem)" }}>
                     <div
                       className="rounded-full shrink-0"
@@ -459,7 +533,7 @@ export default function InlinePairingResults({
                     />
                     <span
                       className="leading-tight line-clamp-2 min-w-0"
-                      style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 500, color: textColor, fontSize: `calc(clamp(0.8rem, 1.3vw, 1.05rem) * ${wineScale})`, transition: "color 0.25s ease" }}
+                      style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 600, color: textColor, fontSize: `calc(clamp(0.85rem, 1.4vw, 1.15rem) * ${wineScale})`, transition: "color 0.25s ease" }}
                     >
                       {wine.name}
                     </span>
@@ -479,37 +553,49 @@ export default function InlinePairingResults({
                     >
                       i
                     </span>
-                    {/* Heart + Top Pick star — star absolutely positioned below heart */}
-                    <div className="shrink-0 relative flex flex-col items-center" style={{ width: "clamp(14px, 1.3vw, 19px)", marginTop: "2px" }}>
+                    {/* Flag save + Top Pick star */}
+                    <div className="shrink-0 relative flex flex-col items-center" style={{ marginTop: "2px" }}>
                       <button
                         onClick={(e) => handleToggleFavorite(wine, e)}
-                        className="cursor-pointer transition-transform duration-200 hover:scale-110 group/heart flex items-center justify-center"
+                        className="cursor-pointer transition-transform duration-200 hover:scale-110 group/flag flex items-center gap-1 justify-center"
                         style={{ minWidth: "2.75rem", minHeight: "2.75rem" }}
                         aria-label={favoriteIds.has(wine.id) ? "Remove from favorites" : "Add to favorites"}
                       >
-                        <svg className="transition-colors duration-150" style={{ width: "clamp(14px, 1.3vw, 19px)", height: "clamp(14px, 1.3vw, 19px)" }} viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                          fill={favoriteIds.has(wine.id) ? "#9B2335" : "none"}
-                          stroke={favoriteIds.has(wine.id) ? "#9B2335" : heartStroke}
-                        >
-                          <path className="group-hover/heart:fill-[#9B2335] group-hover/heart:stroke-[#9B2335] transition-colors duration-150" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
-                      <AnimatePresence>
-                        {topPickWineId === wine.id && (
-                          <motion.span
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{ duration: 0.15, ease }}
-                            style={{ position: "absolute", top: "85%", marginTop: "1px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                            title="Top pick"
+                        {favoriteIds.has(wine.id) ? (
+                          <svg className="transition-colors duration-150" style={{ width: "clamp(13px, 1.2vw, 17px)", height: "clamp(13px, 1.2vw, 17px)" }} viewBox="0 0 24 24" fill="#9B2335" stroke="#9B2335" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                            <line x1="4" y1="22" x2="4" y2="15" />
+                          </svg>
+                        ) : (
+                          <motion.svg
+                            className="transition-colors duration-150"
+                            style={{ width: "clamp(13px, 1.2vw, 17px)", height: "clamp(13px, 1.2vw, 17px)" }}
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke={isHovered ? "rgba(250, 246, 240, 0.5)" : "rgba(26, 10, 14, 0.35)"}
+                            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                           >
-                            <svg style={{ width: "clamp(14px, 1.3vw, 19px)", height: "clamp(14px, 1.3vw, 19px)" }} viewBox="0 0 24 24" fill="#C9A84C" stroke="rgba(26, 10, 14, 0.35)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                            </svg>
-                          </motion.span>
+                            <path className="group-hover/flag:stroke-[#9B2335] transition-colors duration-150" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                            <line className="group-hover/flag:stroke-[#9B2335] transition-colors duration-150" x1="4" y1="22" x2="4" y2="15" />
+                          </motion.svg>
                         )}
-                      </AnimatePresence>
+                        <span
+                          style={{
+                            fontFamily: "var(--font-jost-family)",
+                            fontSize: "clamp(0.5rem, 0.7vw, 0.6rem)",
+                            fontWeight: 500,
+                            color: favoriteIds.has(wine.id)
+                              ? (isHovered ? "rgba(250, 246, 240, 0.7)" : "#9B2335")
+                              : (isHovered ? "rgba(250, 246, 240, 0.45)" : "rgba(26, 10, 14, 0.35)"),
+                            whiteSpace: "nowrap",
+                            transition: "color 0.25s ease",
+                          }}
+                        >
+                          {favoriteIds.has(wine.id) ? "Saved" : "Save"}
+                        </span>
+                      </button>
                     </div>
                   </div>
                   <p className="mt-0.5 capitalize truncate" style={{ color: subTextColor, fontSize: `calc(clamp(10px, 0.85vw, 0.8rem) * ${wineScale})`, marginLeft: "clamp(0.75rem, 1vw, 1.1rem)", transition: "color 0.25s ease" }}>
