@@ -30,7 +30,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://wini.alfredleppanen.com"),
   title: "WINi — Wine Intelligence",
   description: "AI-powered sommelier that pairs wines with your food. Snap a menu, get expert wine pairing recommendations instantly.",
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
   manifest: "/manifest.json",
   openGraph: {
     title: "WINi — Wine Intelligence",
