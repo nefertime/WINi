@@ -47,11 +47,15 @@ test.describe("Favorites (Task 5)", () => {
     await page.locator('[aria-label="Add to favorites"]').first().click();
     await page.waitForTimeout(300);
 
-    // Open menu — Saved Wines auto-expands
+    // Open menu
     await page.getByLabel("Open menu").click();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(400);
 
-    // Find the saved wine row and click with force (behind menu backdrop)
+    // Expand the Saved Wines section (menu defaults to "account" section)
+    await page.locator("text=Saved Wines").click({ force: true });
+    await page.waitForTimeout(400);
+
+    // Find the saved wine row and click to show popup
     const savedWineRow = page.locator('[role="button"]').filter({ hasText: /Vermentino/i }).last();
     await expect(savedWineRow).toBeVisible({ timeout: 5000 });
     await savedWineRow.click({ force: true });
@@ -70,9 +74,11 @@ test.describe("Favorites (Task 5)", () => {
     await page.locator('[aria-label="Add to favorites"]').first().click();
     await page.waitForTimeout(300);
 
-    // Open menu
+    // Open menu and expand Saved Wines section
     await page.getByLabel("Open menu").click();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(400);
+    await page.locator("text=Saved Wines").click({ force: true });
+    await page.waitForTimeout(400);
 
     // Delete button has opacity-0 (hover-only) — use force:true to click it
     const deleteBtn = page.locator('[aria-label*="Remove"][aria-label*="from saved"]').first();

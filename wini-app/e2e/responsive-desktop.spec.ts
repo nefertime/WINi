@@ -96,11 +96,13 @@ test.describe("Responsive — Desktop (1440×900)", () => {
 
     await page.waitForTimeout(400);
 
+    // Expand the Saved Wines section (menu defaults to "account" section)
+    await page.locator("text=Saved Wines").click({ force: true });
+    await page.waitForTimeout(400);
+
     // Click the Vermentino saved wine row
     const savedWineRow = page.locator('[role="button"]').filter({ hasText: /Vermentino/i }).last();
     await expect(savedWineRow).toBeVisible({ timeout: 5000 });
-
-    // force:true to click through menu backdrop while still firing React events
     await savedWineRow.click({ force: true });
 
     await page.waitForTimeout(500);
