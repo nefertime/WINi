@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { profileUpdateSchema, passwordChangeSchema, parseBody } from "@/lib/validation";
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -9,11 +10,17 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { name, age } = await request.json();
+  const body = await request.json();
+  const parsed = parseBody(profileUpdateSchema, body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+
+  const { name, age } = parsed.data;
   const data: { name?: string; age?: number | null } = {};
 
   if (name !== undefined) data.name = name;
-  if (age !== undefined) data.age = age === null ? null : Number(age);
+  if (age !== undefined) data.age = age;
 
   const user = await prisma.user.update({
     where: { id: session.user.id },
@@ -34,21 +41,13 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { currentPassword, newPassword } = await request.json();
-
-  if (!currentPassword || !newPassword) {
-    return NextResponse.json(
-      { error: "Current and new passwords are required" },
-      { status: 400 }
-    );
+  const body = await request.json();
+  const parsed = parseBody(passwordChangeSchema, body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
-  if (typeof newPassword !== "string" || newPassword.length < 8) {
-    return NextResponse.json(
-      { error: "New password must be at least 8 characters" },
-      { status: 400 }
-    );
-  }
+  const { currentPassword, newPassword } = parsed.data;
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },

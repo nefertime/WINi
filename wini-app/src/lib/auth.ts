@@ -7,9 +7,23 @@ import MicrosoftEntraId from "next-auth/providers/microsoft-entra-id";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+/** Detect which OAuth providers have real (non-placeholder) credentials */
+export function getConfiguredProviders(): string[] {
+  const providers: string[] = [];
+  // Credentials is always available
+  providers.push("credentials");
+  if (process.env.AUTH_GOOGLE_ID && !process.env.AUTH_GOOGLE_ID.startsWith("placeholder"))
+    providers.push("google");
+  if (process.env.AUTH_FACEBOOK_ID && !process.env.AUTH_FACEBOOK_ID.startsWith("placeholder"))
+    providers.push("facebook");
+  if (process.env.AUTH_MICROSOFT_ENTRA_ID_ID && !process.env.AUTH_MICROSOFT_ENTRA_ID_ID.startsWith("placeholder"))
+    providers.push("microsoft-entra-id");
+  return providers;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma) as ReturnType<typeof PrismaAdapter>,
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: "/",
     error: "/",

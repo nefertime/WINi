@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Session, FavoriteWine } from "@/lib/types";
+import { migrateSchema, parseBody } from "@/lib/validation";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -9,11 +9,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { sessions, favorites } = (await request.json()) as {
-    sessions: Session[];
-    favorites: FavoriteWine[];
-  };
+  const body = await request.json();
+  const parsed = parseBody(migrateSchema, body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
 
+  const { sessions, favorites } = parsed.data;
   const userId = session.user.id;
 
   // Migrate sessions (idempotent — check preview + timestamp)
@@ -38,7 +40,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // Migrate favorites (idempotent — check wine name)
+  // Migrate favorites (idempotent — check wine data)
   for (const f of favorites) {
     const wineData = JSON.stringify(f.wine);
     const exists = await prisma.favoriteWine.findFirst({
