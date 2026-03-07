@@ -20,8 +20,8 @@ test.describe("Dish management (Task 4)", () => {
     // Should now show 4 dishes
     await expect(page.locator("[id^='dish-']")).toHaveCount(4);
 
-    // Shelf should show "Menu" label with Arancini
-    await expect(page.locator("text=Menu").first()).toBeVisible();
+    // Cutting board should show with Arancini pill
+    await expect(page.locator('img[src="/cutting-board.webp"]')).toBeVisible();
     await expect(page.locator('[aria-label="Add Arancini"]')).toBeVisible();
   });
 
@@ -56,10 +56,10 @@ test.describe("Dish management (Task 4)", () => {
     await expect(regenBtn).toBeVisible({ timeout: 3000 });
   });
 
-  test("shelf shows otherDishes (Tiramisu, Panna Cotta)", async ({ page }) => {
-    // otherDishes from response should appear in shelf
-    const shelf = page.locator("text=Menu").first();
-    await expect(shelf).toBeVisible();
+  test("cutting board shows otherDishes (Tiramisu, Panna Cotta)", async ({ page }) => {
+    // otherDishes from response should appear on cutting board
+    const board = page.locator('img[src="/cutting-board.webp"]');
+    await expect(board).toBeVisible();
 
     // Tiramisu and Panna Cotta should be in shelf
     await expect(page.locator("button", { hasText: "Tiramisu" })).toBeVisible();

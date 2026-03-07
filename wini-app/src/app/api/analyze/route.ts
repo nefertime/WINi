@@ -14,7 +14,7 @@ Respond ONLY in valid JSON with this structure:
   "dishes": [{"id": "d1", "name": "...", "description": "...", "category": "meat|fish|vegetarian|pasta|dessert|appetizer|salad|soup|other"}],
   "otherDishes": [{"id": "d6", "name": "...", "description": "...", "category": "..."}],
   "wines": [{"id": "w1", "name": "...", "type": "red|white|rosé|sparkling", "grape": "...", "region": "...", "vintage": "..."}],
-  "pairings": [{"dish_id": "d1", "wine_id": "w1", "score": 0.95, "reason": "Brief 1-2 sentence pairing reason", "detailed_reason": "Detailed 2-3 sentence explanation"}]
+  "pairings": [{"dish_id": "d1", "wine_id": "w1", "score": 0.95, "reason": "Brief 1-2 sentence pairing reason", "detailed_reason": "Detailed 2-3 sentence explanation", "label": "best_pick|value_pick|wild_one"}]
 }
 
 CRITICAL — User intent detection:
@@ -40,7 +40,7 @@ Dish curation rules:
 - "otherDishes" IDs continue after dishes (e.g., d6, d7...).
 - SKIP: bread courses, amuse-bouches, palate cleansers, petit fours, simple garnishes, tea/coffee pairings.
 - For tasting menus: select the headline courses (fish, meat, rich vegetarian) that showcase wine pairing.
-- For a la carte: pick the standout mains and starters.
+- For a la carte: pick the standout mains only — starters go to otherDishes.
 
 DESSERT EXCLUSION — ALWAYS exclude desserts regardless of language:
 - English: dessert, pudding, sweet course
@@ -52,6 +52,18 @@ DESSERT EXCLUSION — ALWAYS exclude desserts regardless of language:
 - French: dessert
 - Also exclude: ice cream, sorbet, gelato, jäätelö, sorbetti, crème caramel, panna cotta, tiramisu, mousse, tart (sweet), cake, pie (sweet)
 - If in doubt whether something is a dessert, exclude it.
+
+STARTER/APPETIZER EXCLUSION — Route starters to otherDishes (not dishes), regardless of language:
+- English: starter, appetizer, amuse-bouche, small plates, tapas
+- Finnish: alkuruoka, alkupalat
+- Swedish: förrätt, smårätter
+- Italian: antipasto, antipasti
+- French: entrée, hors d'oeuvre
+- German: Vorspeise, Vorspeisen
+- Spanish: entrante, aperitivo
+- Also exclude from dishes: olives, bruschetta, bread, hummus, soup, crostini
+- EXCEPTION: If user specifically names a starter dish, include it in "dishes" with pairings.
+- For GENERAL intent: starters go to "otherDishes", mains only in "dishes".
 
 Dish names MUST be max 4-5 words (under 40 characters). Trim to protein + key technique.
   YES: "Birch-Sap Duck with Morels"
@@ -70,6 +82,13 @@ QUALITY OVER QUANTITY — Smart fill rules:
 - If only 2 wines truly excel for a dish with a max of 5, return 2. Do NOT pad with mediocre options.
 - A confident short list beats an uncertain long one. Fewer great picks > many decent ones.
 - All pairing scores must be genuine — do not inflate scores to meet quotas.
+
+PAIRING LABELS — Assign a label to each pairing:
+- "best_pick": Top wine for pure taste match. Exactly 1 per dish. Required.
+- "value_pick": Best taste-to-price ratio. Assign ONLY when wine prices are visible in the scanned menu. 0 or 1 per dish. Include "price_estimate" on Wine objects when prices are visible (e.g., "€15-25").
+- "wild_one": Adventurous/unexpected pairing — different grape, region, or style than expected. 0 or 1 per dish.
+- If no prices are visible on the menu, skip "value_pick" labels entirely.
+- A pairing can only have ONE label.
 
 WINE DEDUPLICATION:
 - If the same wine pairs well with multiple dishes, include it ONCE in the "wines" array.

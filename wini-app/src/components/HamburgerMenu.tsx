@@ -11,7 +11,7 @@ import { useScrollLock } from "@/hooks/useScrollLock";
 import { BOTTLES, BOTTLE_INFO } from "@/lib/bottles";
 import AccountPanel from "@/components/AccountPanel";
 
-export type MenuSection = "pairings" | "saved" | "promoted" | "account" | "about" | null;
+export type MenuSection = "pairings" | "saved" | "promoted" | "account" | "about" | "info" | null;
 
 type HamburgerMenuProps = {
   isOpen: boolean;
@@ -29,6 +29,7 @@ const menuItems: { id: MenuSection; label: string; icon: string }[] = [
   { id: "pairings", label: "Previous Pairings", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
   { id: "saved", label: "Saved Wines", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
   { id: "promoted", label: "Promoted Wines", icon: "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" },
+  { id: "info", label: "How WINi Pairs", icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" },
   { id: "about", label: "About WINi", icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
 ];
 
@@ -369,7 +370,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                     >
                                       {s.preview}
                                     </p>
-                                    <p className="text-sm mt-0.5" style={{ fontFamily: "var(--font-jost-family)", color: "#5C0A1E" }}>
+                                    <p className="text-base mt-0.5" style={{ fontFamily: "var(--font-jost-family)", color: "#5C0A1E" }}>
                                       {formatDate(s.timestamp)} · {s.dishes.length} dishes
                                     </p>
                                   </div>
@@ -471,7 +472,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                                       >
                                         {fav.wine.name}
                                       </p>
-                                      <p className="text-sm mt-0.5 capitalize truncate" style={{ fontFamily: "var(--font-jost-family)", fontWeight: 500, color: typeColor }}>
+                                      <p className="text-base mt-0.5 capitalize truncate" style={{ fontFamily: "var(--font-jost-family)", fontWeight: 500, color: "rgba(26, 26, 26, 0.6)" }}>
                                         {fav.wine.grape ? `${fav.wine.grape} · ` : ""}{fav.wine.region || fav.wine.type}
                                       </p>
                                     </div>
@@ -567,6 +568,64 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                       </motion.div>
                     )}
 
+                    {activeSection === "info" && item.id === "info" && (
+                      <motion.div
+                        id="section-info"
+                        key="info"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease }}
+                        className="overflow-hidden border-t"
+                        style={{ borderColor: "rgba(92, 10, 30, 0.1)" }}
+                      >
+                        <div className="px-4 py-3 space-y-3">
+                          <p
+                            className="text-base leading-relaxed"
+                            style={{ fontFamily: "var(--font-cormorant-family)", fontStyle: "italic", color: "#0D0D0D" }}
+                          >
+                            WINi uses AI to analyze your menu and find the perfect wine pairings.
+                            Each pairing gets a label to help you choose:
+                          </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: "linear-gradient(135deg, #C9A84C, #E8D48A)", border: "1.5px solid #C9A84C", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+                                <span style={{ fontSize: "0.65rem" }}>{"\u2605"}</span>
+                                <span style={{ fontFamily: "var(--font-jost-family)", fontSize: "0.65rem", fontWeight: 700, color: "#1A0A0E", textTransform: "uppercase" }}>Best Pick</span>
+                              </span>
+                              <span className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "#1A1A1A" }}>
+                                The perfect taste match
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: "linear-gradient(135deg, #4CAF50, #81C784)", border: "1.5px solid #4CAF50", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+                                <span style={{ fontSize: "0.65rem" }}>$</span>
+                                <span style={{ fontFamily: "var(--font-jost-family)", fontSize: "0.65rem", fontWeight: 700, color: "#1A3A0E", textTransform: "uppercase" }}>Value Pick</span>
+                              </span>
+                              <span className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "#1A1A1A" }}>
+                                Great pairing at the best price
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: "linear-gradient(135deg, #9B2335, #C0394F)", border: "1.5px solid #9B2335", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+                                <span style={{ fontSize: "0.65rem" }}>{"\u26A1"}</span>
+                                <span style={{ fontFamily: "var(--font-jost-family)", fontSize: "0.65rem", fontWeight: 700, color: "#FAF6F0", textTransform: "uppercase" }}>Wild One</span>
+                              </span>
+                              <span className="text-sm" style={{ fontFamily: "var(--font-jost-family)", color: "#1A1A1A" }}>
+                                An adventurous surprise
+                              </span>
+                            </div>
+                          </div>
+                          <p
+                            className="text-sm mt-2"
+                            style={{ fontFamily: "var(--font-jost-family)", color: "rgba(26, 26, 26, 0.5)" }}
+                          >
+                            Value Pick appears only when wine prices are visible on the menu.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+
                     {activeSection === "about" && item.id === "about" && (
                       <motion.div
                         id="section-about"
@@ -633,7 +692,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                 {(selectedFav.fav.pairedDishData?.length || selectedFav.fav.pairedWith) && (
                   <div className="mb-3">
                     <p
-                      className="text-[10px] uppercase tracking-wider text-gold/50 mb-1"
+                      className="text-xs uppercase tracking-wider text-gold/50 mb-1"
                       style={{ fontFamily: "var(--font-jost-family)" }}
                     >
                       Paired with
@@ -641,9 +700,9 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
                     {selectedFav.fav.pairedDishData?.length ? (
                       selectedFav.fav.pairedDishData.map((dish) => (
                         <div key={dish.id} className="flex items-center gap-1.5 mt-0.5">
-                          <span style={{ fontSize: "0.7rem" }}>{categoryIcons[dish.category] || categoryIcons.other}</span>
+                          <span style={{ fontSize: "0.85rem" }}>{categoryIcons[dish.category] || categoryIcons.other}</span>
                           <span
-                            className="text-xs text-cream/70 leading-tight"
+                            className="text-sm text-cream/70 leading-tight"
                             style={{ fontFamily: "var(--font-cormorant-family)", fontWeight: 500 }}
                           >
                             {dish.name}

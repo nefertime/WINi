@@ -288,11 +288,12 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
                 aria-label={isRegenerating ? "Regenerating pairings..." : "Regenerate pairings"}
               >
                 <motion.svg
-                  style={{ width: "clamp(26px, 5.5vw, 38px)", height: "clamp(26px, 5.5vw, 38px)" }}
+                  style={{ width: "clamp(22px, 4.5vw, 32px)", height: "clamp(22px, 4.5vw, 32px)" }}
                   viewBox="0 0 24 24"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  strokeWidth="2"
                   animate={{
                     stroke: isRegenerating
                       ? "#FAF6F0"
@@ -303,7 +304,7 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
                     : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
                   }
                 >
-                  {/* Circular reverse arrow — smooth rotation when regenerating */}
+                  {/* Two curved arrows forming a circle */}
                   <motion.g
                     style={{ transformOrigin: "center" }}
                     animate={isRegenerating ? { rotate: 360 } : { rotate: 0 }}
@@ -312,14 +313,11 @@ export default function SearchBar({ onSubmit, position = "center", placeholder, 
                       : { duration: 0 }
                     }
                   >
-                    <path d="M12 3a9 9 0 1 1-6.36 2.64" strokeWidth="1.6" fill="none" />
-                    <path d="M9 1.5L5.64 5.64L9.5 6.5" strokeWidth="1.6" fill="none" />
+                    <path d="M21 2v6h-6" />
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                    <path d="M3 22v-6h6" />
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
                   </motion.g>
-                  {/* Wine bottle — stays stationary */}
-                  <g strokeWidth="1.4" fill="none">
-                    <path d="M11 7v2.5c0 0-2 1-2 3v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-4c0-2-2-3-2-3V7" />
-                    <path d="M11 7h2" />
-                  </g>
                 </motion.svg>
               </motion.button>
               {/* Permanent label below button */}

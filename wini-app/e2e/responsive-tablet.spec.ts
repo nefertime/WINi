@@ -215,7 +215,7 @@ test.describe("Responsive — Tablet (820×1180)", () => {
     expect(subtitleText).toContain("·");
   });
 
-  test("DishShelf pills wrap gracefully", async ({ page }) => {
+  test("CuttingBoard pills fit within board", async ({ page }) => {
     await page.goto("/");
     await cleanState(page);
     await mockAnalyzeAPI(page, WINO_MENU_RESPONSE);
@@ -230,9 +230,9 @@ test.describe("Responsive — Tablet (820×1180)", () => {
     await dismissButton.click({ force: true });
     await page.waitForTimeout(350);
 
-    // The shelf should show the "Menu" label
-    const menuLabel = page.locator("text=Menu").first();
-    await expect(menuLabel).toBeVisible();
+    // The cutting board should be visible
+    const board = page.locator('img[src="/cutting-board.webp"]');
+    await expect(board).toBeVisible();
 
     // The dismissed dish pill (Arancini) should be visible in the shelf
     const aranciniPill = page.locator("button").filter({ hasText: "Arancini" }).first();
