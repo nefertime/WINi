@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /verify-email
+Disallow: /reset-password
+
+Sitemap: https://wini.alfredleppanen.com/sitemap.xml

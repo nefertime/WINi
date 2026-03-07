@@ -1,0 +1,16 @@
+{
+  "name": "WINi — Wine Intelligence",
+  "short_name": "WINi",
+  "description": "AI-powered sommelier that pairs wines with your food",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D0D0D",
+  "theme_color": "#5C0A1E",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

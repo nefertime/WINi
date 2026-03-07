@@ -27,9 +27,28 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://wini.alfredleppanen.com"),
   title: "WINi — Wine Intelligence",
-  description: "Premium AI-powered wine pairing recommendations",
+  description: "AI-powered sommelier that pairs wines with your food. Snap a menu, get expert wine pairing recommendations instantly.",
   icons: { icon: "/favicon.ico" },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "WINi — Wine Intelligence",
+    description: "AI-powered sommelier that pairs wines with your food. Snap a menu, get expert wine pairing recommendations instantly.",
+    url: "https://wini.alfredleppanen.com",
+    siteName: "WINi",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WINi — Wine Intelligence",
+    description: "AI-powered sommelier that pairs wines with your food.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export const viewport: Viewport = {
