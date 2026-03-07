@@ -20,8 +20,12 @@ node_modules/
 nul
 null
 
-# Debug artifacts
+# Debug/screenshot artifacts at root
 debug-*.png
+desktop-*.png
+mobile-*.png
+tablet-*.png
+splash-*.png
 
 # OS
 .DS_Store
