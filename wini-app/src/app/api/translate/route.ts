@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { translateSchema, parseBody } from "@/lib/validation";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `You are a precise JSON translator. Translate the wine pairing JSON to English.
 
@@ -13,11 +15,16 @@ Rules:
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimited = await checkRateLimit("aiGeneral", getClientIp(request));
+    if (rateLimited) return rateLimited;
+
     const body = await request.json();
-    const { data, sourceLanguage } = body as {
-      data: Record<string, unknown>;
-      sourceLanguage: string;
-    };
+    const parsed = parseBody(translateSchema, body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
+    const { data, sourceLanguage } = parsed.data;
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {

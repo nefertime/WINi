@@ -127,7 +127,6 @@ const BottleCarousel = forwardRef<BottleCarouselRef, BottleCarouselProps>(
                 height={800}
                 className="w-full h-full"
                 priority
-                unoptimized
                 style={{ objectFit: "contain", objectPosition: "center" }}
               />
             </motion.div>

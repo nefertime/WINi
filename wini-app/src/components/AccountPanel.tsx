@@ -30,6 +30,9 @@ export default function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (isOpen && session?.user) {
@@ -299,10 +302,37 @@ export default function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
           {/* Divider */}
           <div className="w-full h-px mb-3" style={{ background: "rgba(255, 255, 255, 0.06)" }} />
 
+          {/* Data export */}
+          <button
+            onClick={async () => {
+              const res = await fetch("/api/user/data-export");
+              if (res.ok) {
+                const data = await res.json();
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `wini-data-export-${new Date().toISOString().split("T")[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }
+            }}
+            className="w-full py-2 rounded-xl text-sm transition-all duration-200 hover:brightness-110 active:scale-[0.97] mb-2"
+            style={{
+              fontFamily: "var(--font-jost-family)",
+              background: "transparent",
+              color: "var(--cream-lightest)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              cursor: "pointer",
+            }}
+          >
+            Export My Data
+          </button>
+
           {/* Sign out */}
           <button
             onClick={() => { onClose(); signOut(); }}
-            className="w-full py-2 rounded-xl text-sm transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+            className="w-full py-2 rounded-xl text-sm transition-all duration-200 hover:brightness-110 active:scale-[0.97] mb-2"
             style={{
               fontFamily: "var(--font-jost-family)",
               background: "transparent",
@@ -313,6 +343,73 @@ export default function AccountPanel({ isOpen, onClose }: AccountPanelProps) {
           >
             Sign Out
           </button>
+
+          {/* Delete account */}
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full py-2 rounded-xl text-xs transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+              style={{
+                fontFamily: "var(--font-jost-family)",
+                background: "transparent",
+                color: "rgba(155, 35, 53, 0.5)",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Delete Account
+            </button>
+          ) : (
+            <div className="rounded-lg p-3" style={{ background: "rgba(155, 35, 53, 0.1)", border: "1px solid rgba(155, 35, 53, 0.3)" }}>
+              <p className="text-xs mb-2" style={{ fontFamily: "var(--font-jost-family)", color: "var(--burgundy-glow)" }}>
+                This will permanently delete your account and all data. This cannot be undone.
+              </p>
+              <input
+                type="password"
+                placeholder="Enter your password to confirm"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg text-sm outline-none mb-2"
+                style={{
+                  fontFamily: "var(--font-jost-family)",
+                  background: "rgba(255, 255, 255, 0.04)",
+                  color: "var(--cream-lightest)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); }}
+                  className="flex-1 py-1.5 rounded-lg text-xs"
+                  style={{ fontFamily: "var(--font-jost-family)", background: "transparent", color: "var(--cream-lightest)", border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={deleting || !deletePassword}
+                  onClick={async () => {
+                    setDeleting(true);
+                    const res = await fetch("/api/auth/delete-account", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ password: deletePassword, confirmation: true }),
+                    });
+                    if (res.ok) {
+                      signOut();
+                    } else {
+                      const data = await res.json();
+                      setError(data.error || "Deletion failed");
+                      setDeleting(false);
+                    }
+                  }}
+                  className="flex-1 py-1.5 rounded-lg text-xs disabled:opacity-50"
+                  style={{ fontFamily: "var(--font-jost-family)", background: "var(--burgundy)", color: "var(--cream-lightest)", border: "none", cursor: "pointer" }}
+                >
+                  {deleting ? "..." : "Delete Forever"}
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

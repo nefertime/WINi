@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { analyzeSchema, parseBody } from "@/lib/validation";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `You are WINi, an expert sommelier AI. Analyze menu photos, curate the most interesting dishes, and recommend wine pairings.
 
@@ -83,8 +85,16 @@ Keep it concise. Short dish descriptions (under 12 words). Reasons can be 1-2 se
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimited = await checkRateLimit("analyze", getClientIp(request));
+    if (rateLimited) return rateLimited;
+
     const body = await request.json();
-    const { images, text, dishNames } = body as { images: string[]; text?: string; dishNames?: string[] };
+    const parsed = parseBody(analyzeSchema, body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
+    const { images, text, dishNames } = parsed.data;
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {

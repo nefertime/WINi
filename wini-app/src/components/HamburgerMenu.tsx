@@ -52,10 +52,6 @@ const categoryIcons: Record<string, string> = {
   other: "\u{1F37D}",
 };
 
-// Organic wine-puddle SVG path (objectBoundingBox coords 0-1)
-// Wider at bottom (gravity pooling), irregular edges, slight asymmetry
-const SPILL_PATH =
-  "M 0.03 0.008 C 0.22 -0.004 0.58 0.006 0.97 0.008 C 1.02 0.02 1.015 0.08 1.008 0.2 C 1.0 0.38 1.02 0.52 1.012 0.68 C 1.005 0.8 1.03 0.92 0.96 1.01 C 0.88 1.04 0.68 0.985 0.5 1.015 C 0.32 1.035 0.15 0.995 0.05 1.02 C -0.015 1.03 -0.01 0.94 -0.005 0.8 C 0.0 0.64 -0.018 0.48 0.0 0.32 C 0.012 0.18 -0.008 0.08 0.008 0.025 C 0.015 0.012 0.02 0.007 0.03 0.008 Z";
 
 export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail, onOpenAuth, initialSection }: HamburgerMenuProps) {
   const { data: session } = useSession();
@@ -78,7 +74,7 @@ export default function HamburgerMenu({ isOpen, onClose, onRestore, onWineDetail
   useEffect(() => {
     if (isOpen) {
       storage.getFavorites().then(setFavorites);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop-to-state sync
+       
       setActiveSection(initialSection ?? "account");
       setSelectedFav(null);
       setAccountPanelOpen(false);

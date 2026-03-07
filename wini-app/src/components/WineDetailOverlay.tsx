@@ -33,7 +33,7 @@ export default function WineDetailOverlay({ wine, pairingReason, pairingDetailed
   useFocusTrap(overlayRef, true);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR-safe client detection
+     
     setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
   }, []);
 

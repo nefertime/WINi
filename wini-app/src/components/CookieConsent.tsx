@@ -43,7 +43,7 @@ export default function CookieConsent() {
   useEffect(() => {
     if (hasConsentCookie()) return;
     const timer = setTimeout(() => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate: delayed mount check
+       
       setVisible(true);
     }, 3000);
     return () => clearTimeout(timer);
@@ -87,6 +87,10 @@ export default function CookieConsent() {
             >
               We use cookies to enhance your experience. Essential cookies are always active.
               You can customize optional cookies below.
+              Read our{" "}
+              <a href="/privacy" style={{ color: "var(--gold)", textDecoration: "underline", textUnderlineOffset: "2px" }}>
+                privacy policy
+              </a>.
             </p>
 
             <AnimatePresence>

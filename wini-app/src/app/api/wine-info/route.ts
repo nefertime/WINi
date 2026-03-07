@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { wineInfoSchema, parseBody } from "@/lib/validation";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const SYSTEM_PROMPT = `You are WINi, an expert sommelier AI with deep knowledge of wines worldwide.
 Respond ONLY in valid JSON format with this exact structure:
@@ -18,7 +20,16 @@ IMPORTANT: Keep tasting_notes and origin_story SHORT — one sentence each, punc
 
 export async function POST(request: NextRequest) {
   try {
-    const { wineName, wineType, grape, region } = await request.json();
+    const rateLimited = await checkRateLimit("aiGeneral", getClientIp(request));
+    if (rateLimited) return rateLimited;
+
+    const body = await request.json();
+    const parsed = parseBody(wineInfoSchema, body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
+    const { wineName, wineType, grape, region } = parsed.data;
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {

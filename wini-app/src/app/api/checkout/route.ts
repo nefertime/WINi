@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
+import { checkoutSchema, parseBody } from "@/lib/validation";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -8,12 +9,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { priceId } = (await request.json()) as { priceId: string };
-
-  if (!priceId) {
-    return NextResponse.json({ error: "Missing priceId" }, { status: 400 });
+  const body = await request.json();
+  const parsed = parseBody(checkoutSchema, body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
+  const { priceId } = parsed.data;
   const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3100";
 
   const checkoutSession = await stripe.checkout.sessions.create({

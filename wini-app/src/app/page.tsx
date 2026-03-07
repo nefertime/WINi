@@ -16,6 +16,7 @@ import AuthModal from "@/components/AuthModal";
 import { convertImageToJpeg } from "@/utils/imageUtils";
 import { AnalyzeResponse, Dish, Session, Wine } from "@/lib/types";
 import { useStorage } from "@/hooks/useStorage";
+import { useBottlePreload } from "@/hooks/useBottlePreload";
 import AuthPrompt from "@/components/AuthPrompt";
 
 type AppState = "home" | "scanning" | "results";
@@ -26,6 +27,7 @@ const normalizeName = (name: string) =>
   name.toLowerCase().replace(/[-–—]/g, " ").replace(/\s+/g, " ").trim();
 
 export default function Home() {
+  useBottlePreload();
   const [state, setState] = useState<AppState>("home");
   const [pairingData, setPairingData] = useState<AnalyzeResponse | null>(null);
   const [sessionId, setSessionId] = useState<string | undefined>();
@@ -152,7 +154,7 @@ export default function Home() {
   const activeDishes = allDishes.filter((d) =>
     (originalDishIds.has(d.id) || addedDishIds.has(d.id)) && !dismissedDishIds.has(d.id)
   );
-  const activeDishIdSet = new Set(activeDishes.map((d) => d.id));
+  const activeDishIdSet = useMemo(() => new Set(activeDishes.map((d) => d.id)), [activeDishes]);
 
   // Shelf = everything not active
   const shelfDishes = allDishes.filter((d) => !activeDishIdSet.has(d.id));

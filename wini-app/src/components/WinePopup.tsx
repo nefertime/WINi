@@ -26,6 +26,7 @@ export default function WinePopup({
   wine,
   pairing,
   position,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- part of component API, used by parent
   onMorePairing,
   onAboutWine,
   onClose,

@@ -58,7 +58,8 @@ export default function InlinePairingResults({
   const [activeItem, setActiveItem] = useState<{ id: string; type: "dish" | "wine" } | null>(
     () => activeDishes.length === 1 ? { id: activeDishes[0].id, type: "dish" } : null
   );
-  const [isHolding, setIsHolding] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setIsHolding used in touch handlers
+  const [_isHolding, setIsHolding] = useState(false);
   const [detailWine, setDetailWine] = useState<{ wine: Wine; position: { x: number; y: number; right: number } } | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => {
     if (!isAuthenticated) return new Set();
@@ -85,7 +86,8 @@ export default function InlinePairingResults({
         .sort((a, b) => b.score - a.score)[0]?.wine_id ?? null
     : null;
 
-  const connections = activeItem
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for future connection line rendering
+  const _connections = activeItem
     ? pairings
         .filter((p) =>
           activeItem.type === "dish"
