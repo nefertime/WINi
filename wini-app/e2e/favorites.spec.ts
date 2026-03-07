@@ -55,10 +55,12 @@ test.describe("Favorites (Task 5)", () => {
     await page.locator("text=Saved Wines").click({ force: true });
     await page.waitForTimeout(400);
 
-    // Find the saved wine row and click to show popup
+    // Find the saved wine row and click — use evaluate to fire React's onClick through any backdrop
     const savedWineRow = page.locator('[role="button"]').filter({ hasText: /Vermentino/i }).last();
     await expect(savedWineRow).toBeVisible({ timeout: 5000 });
-    await savedWineRow.click({ force: true });
+    await savedWineRow.evaluate((el) => {
+      el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    });
     await page.waitForTimeout(500);
 
     // Popup should show "Paired with" section

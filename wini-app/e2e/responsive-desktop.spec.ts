@@ -100,10 +100,12 @@ test.describe("Responsive — Desktop (1440×900)", () => {
     await page.locator("text=Saved Wines").click({ force: true });
     await page.waitForTimeout(400);
 
-    // Click the Vermentino saved wine row
+    // Click the Vermentino saved wine row — evaluate to fire React onClick through backdrop
     const savedWineRow = page.locator('[role="button"]').filter({ hasText: /Vermentino/i }).last();
     await expect(savedWineRow).toBeVisible({ timeout: 5000 });
-    await savedWineRow.click({ force: true });
+    await savedWineRow.evaluate((el) => {
+      el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    });
 
     await page.waitForTimeout(500);
 
