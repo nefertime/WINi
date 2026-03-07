@@ -77,14 +77,14 @@ test.describe("Auth Flow", () => {
     await page.goto("http://localhost:3100/privacy");
     await expect(page.getByText("Privacy Policy")).toBeVisible();
     await expect(page.getByText("What We Collect")).toBeVisible();
-    await expect(page.getByText("Back to WINi")).toBeVisible();
+    await expect(page.getByText(/Back to WINi/)).toBeVisible();
   });
 
   test("terms page loads", async ({ page }) => {
     await page.goto("http://localhost:3100/terms");
     await expect(page.getByText("Terms of Service")).toBeVisible();
     await expect(page.getByText("The Service")).toBeVisible();
-    await expect(page.getByText("Back to WINi")).toBeVisible();
+    await expect(page.getByText(/Back to WINi/)).toBeVisible();
   });
 
   test("404 page shows branded content", async ({ page }) => {

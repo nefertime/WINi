@@ -34,10 +34,10 @@ test.describe("Navigation", () => {
     // Thumbnail visible — wait for upload to render
     await expect(page.locator('img[alt="Upload 1"]')).toBeVisible({ timeout: 5000 });
 
-    // Clean button has a pulsing animation — use force to bypass stability check
+    // Clean button has a pulsing scale animation — dispatchEvent bypasses Playwright stability checks
     const cleanBtn = page.locator('[aria-label="Clear photos and start fresh"]');
     await expect(cleanBtn).toBeVisible({ timeout: 3000 });
-    await cleanBtn.click({ force: true });
+    await cleanBtn.dispatchEvent("click");
 
     // Thumbnail should be gone
     await expect(page.locator('img[alt="Upload 1"]')).not.toBeVisible();

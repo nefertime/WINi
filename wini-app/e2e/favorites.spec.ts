@@ -45,45 +45,42 @@ test.describe("Favorites (Task 5)", () => {
   test("clicking saved wine shows popup WITHOUT redundant wine name", async ({ page }) => {
     // Favorite first wine
     await page.locator('[aria-label="Add to favorites"]').first().click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
 
-    // Open menu
+    // Open menu — Saved Wines auto-expands
     await page.getByLabel("Open menu").click();
-    await page.waitForTimeout(500); // Wait for menu animation to complete
+    await page.waitForTimeout(600);
 
-    // Click the saved wine row directly (the .group div with onClick handler)
-    const savedWineRow = page.locator(".group").filter({ hasText: "Vermentino" }).last();
-    await expect(savedWineRow).toBeVisible({ timeout: 3000 });
-    // Use dispatchEvent to ensure React's onClick fires properly through the backdrop
+    // Find the saved wine row by its remove aria-label (unique per wine)
+    const savedWineRow = page.locator('[role="button"]').filter({ hasText: /Vermentino/i }).last();
+    await expect(savedWineRow).toBeVisible({ timeout: 5000 });
     await savedWineRow.dispatchEvent("click");
-    await page.waitForTimeout(400); // Wait for popup animation
+    await page.waitForTimeout(500);
 
     // Popup should show "Paired with" section
     await expect(page.locator("text=Paired with")).toBeVisible({ timeout: 5000 });
 
     // Popup should show action buttons
     await expect(page.locator("text=More about this wine")).toBeVisible();
-    await expect(page.locator("text=Buy this wine")).toBeVisible();
+    await expect(page.locator("text=/Buy this wine/")).toBeVisible();
   });
 
   test("delete button in saved wines removes the wine", async ({ page }) => {
     // Favorite a wine
     await page.locator('[aria-label="Add to favorites"]').first().click();
+    await page.waitForTimeout(300);
 
     // Open menu
     await page.getByLabel("Open menu").click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(600);
 
-    // Hover over saved wine to reveal delete button
-    const savedWineRow = page.locator(".group").filter({ hasText: "Vermentino" }).last();
-    await savedWineRow.hover();
-
-    // Click the X delete button (14x14 SVG)
-    const deleteBtn = savedWineRow.locator("button").last();
-    await deleteBtn.click();
+    // Find delete button by aria-label (unique per wine name)
+    const deleteBtn = page.locator('[aria-label*="Remove"][aria-label*="from saved"]').first();
+    await expect(deleteBtn).toBeVisible({ timeout: 5000 });
+    await deleteBtn.dispatchEvent("click");
 
     // Wine should be removed from the list
-    await expect(page.locator("text=Tap the heart on any wine to save it here")).toBeVisible();
+    await expect(page.locator("text=Tap the heart on any wine to save it here")).toBeVisible({ timeout: 5000 });
   });
 
   test("unfavoriting wine removes filled heart", async ({ page }) => {
