@@ -34,7 +34,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
   // Sync view with initialView when modal opens (component stays mounted)
   useEffect(() => {
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop-to-state sync
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate prop-to-state sync on open
       setView(initialView);
       setName("");
       setEmail("");
@@ -43,7 +43,6 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
       setError("");
       setForgotSent(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync on open/initialView change
   }, [isOpen, initialView]);
 
   const resetForm = () => {
@@ -241,8 +240,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
                       <SubmitButton loading={loading}>Sign In</SubmitButton>
                     </form>
 
-                    <Divider />
-                    <SocialButtons onSocial={handleSocial} />
+                    <SocialSection onSocial={handleSocial} />
 
                     <p
                       className="text-center text-sm mt-5"
@@ -285,8 +283,7 @@ export default function AuthModal({ isOpen, onClose, initialView = "signin" }: A
                       <SubmitButton loading={loading}>Create Account</SubmitButton>
                     </form>
 
-                    <Divider />
-                    <SocialButtons onSocial={handleSocial} />
+                    <SocialSection onSocial={handleSocial} />
 
                     <p
                       className="text-center text-sm mt-5"
@@ -491,12 +488,35 @@ function SocialIcon({ id, size = 16 }: { id: string; size?: number }) {
   return null;
 }
 
-function SocialButtons({ onSocial }: { onSocial: (provider: string) => void }) {
-  const providers = [
-    { id: "google", label: "Google", color: "#4285F4" },
-    { id: "facebook", label: "Meta", color: "#1877F2" },
-    { id: "microsoft-entra-id", label: "Microsoft", color: "#00A4EF" },
+function SocialSection({ onSocial }: { onSocial: (provider: string) => void }) {
+  const [configured, setConfigured] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/auth/providers")
+      .then((r) => r.json())
+      .then((data) => setConfigured(data.providers ?? []))
+      .catch(() => {});
+  }, []);
+
+  const socialIds = configured.filter((id) => id !== "credentials");
+  if (socialIds.length === 0) return null;
+
+  return (
+    <>
+      <Divider />
+      <SocialButtons onSocial={onSocial} configuredIds={socialIds} />
+    </>
+  );
+}
+
+function SocialButtons({ onSocial, configuredIds }: { onSocial: (provider: string) => void; configuredIds: string[] }) {
+  const allProviders = [
+    { id: "google", label: "Google" },
+    { id: "facebook", label: "Meta" },
+    { id: "microsoft-entra-id", label: "Microsoft" },
   ];
+
+  const providers = allProviders.filter((p) => configuredIds.includes(p.id));
 
   return (
     <div className="flex gap-3 justify-center">

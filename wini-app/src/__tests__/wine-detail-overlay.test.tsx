@@ -1,18 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, waitFor, within } from "@testing-library/react";
 import WineDetailOverlay from "@/components/WineDetailOverlay";
 import { Wine } from "@/lib/types";
 
 // Mock framer-motion
 vi.mock("framer-motion", () => {
+  const motionProps = new Set(["initial", "animate", "exit", "transition", "whileHover", "whileTap", "whileFocus", "whileDrag", "whileInView", "variants", "layout", "layoutId", "drag", "dragConstraints", "dragElastic", "dragMomentum"]);
   const Div = ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
-    const {
-      initial, animate, exit, transition, whileHover,
-      whileTap, whileFocus, whileDrag, whileInView,
-      variants, layout, layoutId, drag, dragConstraints,
-      dragElastic, dragMomentum,
-      ...rest
-    } = props;
+    const rest = Object.fromEntries(Object.entries(props).filter(([k]) => !motionProps.has(k)));
     return <div {...rest}>{children}</div>;
   };
   return {
