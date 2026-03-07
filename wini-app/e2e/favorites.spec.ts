@@ -51,10 +51,10 @@ test.describe("Favorites (Task 5)", () => {
     await page.getByLabel("Open menu").click();
     await page.waitForTimeout(600);
 
-    // Find the saved wine row by its remove aria-label (unique per wine)
+    // Find the saved wine row and click with force (behind menu backdrop)
     const savedWineRow = page.locator('[role="button"]').filter({ hasText: /Vermentino/i }).last();
     await expect(savedWineRow).toBeVisible({ timeout: 5000 });
-    await savedWineRow.dispatchEvent("click");
+    await savedWineRow.click({ force: true });
     await page.waitForTimeout(500);
 
     // Popup should show "Paired with" section
@@ -74,10 +74,10 @@ test.describe("Favorites (Task 5)", () => {
     await page.getByLabel("Open menu").click();
     await page.waitForTimeout(600);
 
-    // Find delete button by aria-label (unique per wine name)
+    // Delete button has opacity-0 (hover-only) — use force:true to click it
     const deleteBtn = page.locator('[aria-label*="Remove"][aria-label*="from saved"]').first();
-    await expect(deleteBtn).toBeVisible({ timeout: 5000 });
-    await deleteBtn.dispatchEvent("click");
+    await expect(deleteBtn).toBeAttached({ timeout: 5000 });
+    await deleteBtn.click({ force: true });
 
     // Wine should be removed from the list
     await expect(page.locator("text=Tap the heart on any wine to save it here")).toBeVisible({ timeout: 5000 });

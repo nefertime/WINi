@@ -100,8 +100,8 @@ test.describe("Responsive — Desktop (1440×900)", () => {
     const savedWineRow = page.locator('[role="button"]').filter({ hasText: /Vermentino/i }).last();
     await expect(savedWineRow).toBeVisible({ timeout: 5000 });
 
-    // Use dispatchEvent for elements that may be behind the menu backdrop
-    await savedWineRow.dispatchEvent("click");
+    // force:true to click through menu backdrop while still firing React events
+    await savedWineRow.click({ force: true });
 
     await page.waitForTimeout(500);
 
