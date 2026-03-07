@@ -7,28 +7,28 @@ import MicrosoftEntraId from "next-auth/providers/microsoft-entra-id";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+function isRealCredential(value: string | undefined): boolean {
+  return !!value && !value.startsWith("placeholder");
+}
+
 /** Detect which OAuth providers have real (non-placeholder) credentials */
 export function getConfiguredProviders(): string[] {
   const providers: string[] = [];
   // Credentials is always available
   providers.push("credentials");
-  if (process.env.AUTH_GOOGLE_ID && !process.env.AUTH_GOOGLE_ID.startsWith("placeholder"))
+  if (isRealCredential(process.env.AUTH_GOOGLE_ID) && isRealCredential(process.env.AUTH_GOOGLE_SECRET))
     providers.push("google");
-  if (process.env.AUTH_FACEBOOK_ID && !process.env.AUTH_FACEBOOK_ID.startsWith("placeholder"))
+  if (isRealCredential(process.env.AUTH_FACEBOOK_ID) && isRealCredential(process.env.AUTH_FACEBOOK_SECRET))
     providers.push("facebook");
-  if (process.env.AUTH_MICROSOFT_ENTRA_ID_ID && !process.env.AUTH_MICROSOFT_ENTRA_ID_ID.startsWith("placeholder"))
+  if (isRealCredential(process.env.AUTH_MICROSOFT_ENTRA_ID_ID) && isRealCredential(process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET))
     providers.push("microsoft-entra-id");
   return providers;
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma) as ReturnType<typeof PrismaAdapter>,
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
-  pages: {
-    signIn: "/",
-    error: "/",
-  },
-  providers: [
+function buildProviders() {
+  const configured = getConfiguredProviders();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const providers: any[] = [
     Credentials({
       name: "credentials",
       credentials: {
@@ -50,19 +50,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return { id: user.id, name: user.name, email: user.email, image: user.image };
       },
     }),
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
-    Facebook({
-      clientId: process.env.AUTH_FACEBOOK_ID,
-      clientSecret: process.env.AUTH_FACEBOOK_SECRET,
-    }),
-    MicrosoftEntraId({
-      clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
-      clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET,
-    }),
-  ],
+  ];
+
+  if (configured.includes("google")) {
+    providers.push(
+      Google({ clientId: process.env.AUTH_GOOGLE_ID!, clientSecret: process.env.AUTH_GOOGLE_SECRET! })
+    );
+  }
+  if (configured.includes("facebook")) {
+    providers.push(
+      Facebook({ clientId: process.env.AUTH_FACEBOOK_ID!, clientSecret: process.env.AUTH_FACEBOOK_SECRET! })
+    );
+  }
+  if (configured.includes("microsoft-entra-id")) {
+    providers.push(
+      MicrosoftEntraId({
+        clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID!,
+        clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET!,
+      })
+    );
+  }
+
+  return providers;
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma) as ReturnType<typeof PrismaAdapter>,
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
+  pages: {
+    signIn: "/",
+    error: "/",
+  },
+  providers: buildProviders(),
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
