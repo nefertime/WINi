@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { FavoriteWine, Wine, Dish } from "@/lib/types";
+import { saveFavoriteSchema, deleteFavoriteSchema, parseBody } from "@/lib/validation";
+import type { FavoriteWine, Wine, Dish } from "@/lib/types";
 
 export async function GET() {
   const session = await auth();
@@ -33,12 +34,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { wine, pairedWith, pairedDishData } = (await request.json()) as {
-    wine: Wine;
-    pairedWith?: string;
-    pairedDishData?: Dish[];
-  };
+  const body = await request.json();
+  const parsed = parseBody(saveFavoriteSchema, body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
 
+  const { wine, pairedWith, pairedDishData } = parsed.data;
   const wineData = JSON.stringify(wine);
 
   // Dedupe by wine data
@@ -68,8 +70,13 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { wine } = (await request.json()) as { wine: Wine };
-  const wineData = JSON.stringify(wine);
+  const body = await request.json();
+  const parsed = parseBody(deleteFavoriteSchema, body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+
+  const wineData = JSON.stringify(parsed.data.wine);
 
   await prisma.favoriteWine.deleteMany({
     where: { userId: session.user.id, wineData },
